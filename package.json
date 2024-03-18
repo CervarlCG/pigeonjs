@@ -4,8 +4,14 @@
   "workspaces": [
     "packages/*"
   ],
-  "dependencies": {},
+  "scripts": {
+    "dev": "lerna run dev"
+  },
+  "dependencies": {
+    "uuid": "^9.0.1"
+  },
   "devDependencies": {
+    "@types/uuid": "^9.0.8",
     "lerna": "^8.1.2"
   }
 }
