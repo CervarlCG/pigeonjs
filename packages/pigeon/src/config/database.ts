@@ -1,3 +1,4 @@
+import { User } from "src/models/user/entities/user.entity";
 import { DataSourceOptions } from "typeorm";
 
 export const databaseConfiguration = (): Partial<DataSourceOptions> => ({
@@ -7,5 +8,6 @@ export const databaseConfiguration = (): Partial<DataSourceOptions> => ({
   database: process.env.DATABASE_NAME,
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
-  synchronize: false
+  synchronize: false,
+  entities: [User]
 })
