@@ -1,3 +1,4 @@
+import { Log } from "src/models/logger/entities/logger.entity";
 import { User } from "src/models/user/entities/user.entity";
 import { DataSourceOptions } from "typeorm";
 
@@ -9,5 +10,5 @@ export const databaseConfiguration = (): Partial<DataSourceOptions> => ({
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
   synchronize: false,
-  entities: [User]
+  entities: [User, Log]
 })
