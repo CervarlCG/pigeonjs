@@ -1,5 +1,5 @@
-import { IsNull, Not } from "typeorm";
+import { IsNull } from "typeorm";
 
 export function getDeletedAtWhereClausule( allowDeleted: boolean = false ) {
-  return !allowDeleted ? { deletedAt: Not(IsNull()) } : {};
+  return !allowDeleted ? { deletedAt: IsNull() } : {};
 }

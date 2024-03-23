@@ -12,7 +12,7 @@ import { LoggerModule } from './models/logger/logger.module';
 import { HttpModule } from './models/http/http.module';
 import { HttpInterceptor } from './models/http/http.interceptor';
 import { RequestModule } from './models/request/request.module';
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from './models/auth/auth.module';
 
 @Module({
   imports: [
