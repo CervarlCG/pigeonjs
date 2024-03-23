@@ -6,6 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from "bcrypt";
 import { FindOptions } from 'src/common/interfaces/repository';
 import { getDeletedAtWhereClausule } from 'src/common/helpers/repository';
+import { ResourceConflictException, UnauthorizedException } from 'src/common/exceptions';
 
 @Injectable()
 export class UserService {
@@ -15,6 +16,14 @@ export class UserService {
   ) {}
 
   async create(userInput: CreateUserDto) {
+    const existingUser = await this.findOne(userInput.email, {allowDeleted: true});
+
+    // TODO: What to do when a previously deleted user try to create same account again? 
+    if( existingUser && existingUser.deletedAt !== null )
+      throw new UnauthorizedException("This account was previously deleted. Please contact site owner");
+    else if (existingUser)
+      throw new ResourceConflictException("An user with the given email already exists");
+
     const user = this.userRepository.create({...userInput, password: await this.hashPassword(userInput.password)})
     return await this.userRepository.save(user);
   }
