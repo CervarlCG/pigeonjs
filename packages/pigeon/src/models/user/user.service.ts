@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository, Any } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import bcrypt from "bcrypt";
+import { FindOptions } from 'src/common/interfaces/repository';
+import { getDeletedAtWhereClausule } from 'src/common/helpers/repository';
 
 @Injectable()
 export class UserService {
@@ -17,8 +19,11 @@ export class UserService {
     return await this.userRepository.save(user);
   }
 
-  async findOne( email: string ) {
-    return this.userRepository.findOne({where: {email}});
+  async findOne( email: string, options: FindOptions = {} ) {
+    return this.userRepository.findOne({where: {
+      email, 
+      ...getDeletedAtWhereClausule(options.allowDeleted)
+    }});
   }
 
   async hashPassword(password: string) {
@@ -27,5 +32,10 @@ export class UserService {
 
   async verifyPassword(hashedPassword: string, plainPassword: string) {
     return bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  async toDto(user: User) {
+    const { password, createdAt, updatedAt, deletedAt, ...userDto } = user;
+    return userDto;
   }
 }
