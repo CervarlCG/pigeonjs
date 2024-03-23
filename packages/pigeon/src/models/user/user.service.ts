@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { IsNull, Not, Repository, Any } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
-import bcrypt from "bcrypt";
+import * as bcrypt from "bcrypt";
 import { FindOptions } from 'src/common/interfaces/repository';
 import { getDeletedAtWhereClausule } from 'src/common/helpers/repository';
 
