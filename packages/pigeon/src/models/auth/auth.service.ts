@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
-import { ResourceNotFoundException, UnauthorizedException } from 'src/common/exceptions';
+import { UnauthorizedException } from 'src/common/exceptions';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
 
   constructor(
-    private userService: UserService
+    private userService: UserService,
+    private jwtService: JwtService,
   ){}
 
   async signIn(email: string, password: string) {
@@ -16,6 +18,10 @@ export class AuthService {
     if( !user || !this.userService.verifyPassword(user.password, password) ) 
       throw new UnauthorizedException("Authentication failed. Please check your login details and try again.");
 
-    return this.userService.toDto(user);
+    const payload = {sub: user.id, email: user.email};
+
+    return {
+      accessToken: await this.jwtService.signAsync(payload)
+    }
   }
 }
