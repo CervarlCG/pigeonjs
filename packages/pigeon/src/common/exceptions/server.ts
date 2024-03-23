@@ -1,5 +1,7 @@
 export class SystemException extends Error {
-  exposeCause = true;
+  exposeMessage = true;
+  allowLog = false;
+  
   constructor(message: string = '') {
     super(message);
   }
@@ -20,5 +22,6 @@ export class BadGatewayException extends SystemException {}
 export class ServiceUnavailableException extends SystemException {}
 
 export class ServerException extends SystemException{
-  exposeCause: false;
+  exposeMessage = false;
+  allowLog = true;
 };

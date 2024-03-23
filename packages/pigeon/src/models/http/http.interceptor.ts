@@ -10,7 +10,7 @@ import {
   BadGatewayException,
   ServerException,
   SystemException,
-} from "src/common/exceptions";
+} from "src/common/exceptions/server";
 import { HttpRequestException } from "src/common/exceptions/http";
 import { messageForNoExposeError } from "src/common/constants/exceptions";
 
@@ -41,7 +41,7 @@ export class HttpInterceptor implements NestInterceptor {
         else if (err instanceof ServiceUnavailableException) code = HttpStatus.SERVICE_UNAVAILABLE;
         else if (err instanceof ServerException) code = HttpStatus.INTERNAL_SERVER_ERROR;
 
-        if( (isSystemException && !err.exposeCause) || !isSystemException )
+        if( (isSystemException && !err.exposeMessage) || !isSystemException )
           message = messageForNoExposeError;
 
         throw new HttpRequestException(code, message, this.requestService.getID());
