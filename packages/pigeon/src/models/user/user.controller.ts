@@ -1,8 +1,5 @@
-import { Controller, Post, Req } from '@nestjs/common';
-import { UserService } from './user.service';
-import { Request } from 'express';
-import { QueryFailedError } from 'typeorm';
-import { ParametersException } from 'src/common/exceptions';
+import { Controller } from '@nestjs/common';
+
 
 @Controller('user')
 export class UserController {
