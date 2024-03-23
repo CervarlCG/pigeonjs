@@ -4,7 +4,7 @@ import { Repository } from "typeorm";
 import { Log } from "./entities/logger.entity";
 import { LogRecord, LogLevel } from "./types";
 
-@Injectable({scope: Scope.REQUEST})
+@Injectable()
 export class LoggerService {
   constructor(
     @InjectRepository(Log)
@@ -29,6 +29,14 @@ export class LoggerService {
       requestId,
     }
     const logSaved = await this.log(logRecord).catch(err => null);
-    return logSaved?.requestId;
+    return logSaved;
+  }
+
+  async find( requestId: string ) {
+    return this.logsRepository.findOne({where: { requestId }})
+  }
+
+  async remove( requestId: string ) {
+    return this.logsRepository.delete({requestId});
   }
 }

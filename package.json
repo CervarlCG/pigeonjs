@@ -5,7 +5,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "lerna run dev"
+    "dev": "lerna run dev",
+    "test": "lerna run test",
+    "test:e2e": "lerna run test:e2e"
   },
   "dependencies": {
     "uuid": "^9.0.1"

@@ -12,7 +12,7 @@ import {
   SystemException,
 } from "src/common/exceptions";
 import { HttpRequestException } from "src/common/exceptions/http";
-import { notExposeErrorMessage } from "src/common/constants/exceptions";
+import { messageForNoExposeError } from "src/common/constants/exceptions";
 
 /**
  * Intercept a RestAPI request error and throw the correct status code and message based on the business logic exception 
@@ -42,7 +42,7 @@ export class HttpInterceptor implements NestInterceptor {
         else if (err instanceof ServerException) code = HttpStatus.INTERNAL_SERVER_ERROR;
 
         if( (isSystemException && !err.exposeCause) || !isSystemException )
-          message = notExposeErrorMessage;
+          message = messageForNoExposeError;
 
         throw new HttpRequestException(code, message, this.requestService.getID());
       })
