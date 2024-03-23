@@ -1,6 +1,6 @@
 export class SystemException extends Error {
   exposeCause = true;
-  constructor(message: string) {
+  constructor(message: string = '') {
     super(message);
   }
 }
