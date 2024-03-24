@@ -1,11 +1,13 @@
 import { HttpException, HttpExceptionOptions, HttpStatus } from "@nestjs/common";
 
 export class HttpRequestException extends HttpException {
-  constructor(status: number, error: string, requestId: string, options?: HttpExceptionOptions) {
-    super({
-      status,
-      error,
-      requestId,
-    }, status, options);
+  constructor( { statusCode, message, requestId, description, options }: {
+    statusCode: number,
+    message: string,
+    requestId: string,
+    description: string,
+    options?: HttpExceptionOptions
+  }) {
+    super( {...HttpException.createBody(message, description, statusCode), requestId}, statusCode, options);
   }
 }

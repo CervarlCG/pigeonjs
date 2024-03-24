@@ -38,8 +38,8 @@ describe('AppController (e2e)', () => {
     requestId = response.body.requestId;
     
     expect(response.status).toEqual(500);
-    expect(response.body.status).toEqual(500);
-    expect(response.body.error).toEqual(messageForNoExposeError);
+    expect(response.body.statusCode).toEqual(500);
+    expect(response.body.message).toEqual(messageForNoExposeError);
     expect( log?.requestId ).toBe(response.body.requestId);
   });
 });

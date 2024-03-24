@@ -30,21 +30,42 @@ export class HttpInterceptor implements NestInterceptor {
       catchError(async (err) => {
         let code = HttpStatus.INTERNAL_SERVER_ERROR;
         let message = err.message;
+        let description = 'Internal Server Error'
         const isSystemException = err instanceof SystemException;
 
         if( err instanceof ParametersException ) code = HttpStatus.BAD_REQUEST;
-        else if (err instanceof UnauthorizedException ) code = HttpStatus.UNAUTHORIZED;
-        else if (err instanceof ForbiddenException) code = HttpStatus.FORBIDDEN;
-        else if (err instanceof ResourceNotFoundException) code = HttpStatus.NOT_FOUND;
-        else if (err instanceof ResourceConflictException) code = HttpStatus.CONFLICT;
-        else if (err instanceof BadGatewayException) code = HttpStatus.BAD_REQUEST;
-        else if (err instanceof ServiceUnavailableException) code = HttpStatus.SERVICE_UNAVAILABLE;
-        else if (err instanceof ServerException) code = HttpStatus.INTERNAL_SERVER_ERROR;
-
+        else if (err instanceof UnauthorizedException) {
+          code = HttpStatus.UNAUTHORIZED;
+          description = 'Unauthorized';
+        }
+        else if (err instanceof ForbiddenException) {
+          code = HttpStatus.FORBIDDEN;
+          description = 'Forbidden';
+        }
+        else if (err instanceof ResourceNotFoundException) {
+          code = HttpStatus.NOT_FOUND;
+          description = 'Not Found';
+        }
+        else if (err instanceof ResourceConflictException) {
+          code = HttpStatus.CONFLICT;
+          description = 'Conflict';
+        }
+        else if (err instanceof BadGatewayException) {
+          code = HttpStatus.BAD_GATEWAY;
+          description = 'Bad Gateway';
+        }
+        else if (err instanceof ServiceUnavailableException) {
+          code = HttpStatus.SERVICE_UNAVAILABLE;
+          description = 'Service Unavailable';
+        }
+        else if (err instanceof ServerException) {
+          code = HttpStatus.INTERNAL_SERVER_ERROR;
+          description = 'Internal Server Error';
+        }
         if( (isSystemException && !err.exposeMessage) || !isSystemException )
           message = messageForNoExposeError;
 
-        throw new HttpRequestException(code, message, this.requestService.getID());
+        throw new HttpRequestException({message, statusCode: code, requestId: this.requestService.getID(), description});
       })
     )
   }
