@@ -4,7 +4,7 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from "bcrypt";
-import { FindOptions } from 'src/common/interfaces/repository';
+import { DeleteOptions, FindOptions } from 'src/common/interfaces/repository';
 import { getDeletedAtWhereClausule } from 'src/common/helpers/repository';
 import { ResourceConflictException, UnauthorizedException } from 'src/common/exceptions/system';
 
@@ -33,6 +33,13 @@ export class UserService {
       email, 
       ...getDeletedAtWhereClausule(options.allowDeleted)
     }});
+  }
+
+  async delete( id: number, options: DeleteOptions = {} ) {
+    if( options.hardDelete !== true )
+      this.userRepository.update({ id }, { deletedAt: new Date() });
+    else 
+      this.userRepository.delete({id});
   }
 
   async hashPassword(password: string) {
