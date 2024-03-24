@@ -3,6 +3,7 @@ import { UserService } from '../user/user.service';
 import { UnauthorizedException } from 'src/common/exceptions/system';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -12,15 +13,8 @@ export class AuthService {
     private jwtService: JwtService,
   ){}
 
-  async signIn(email: string, password: string) {
-    const user = await this.userService.findOne(email);
-
-    // Prevent tell "client" what failed for security reasons
-    if( !user || !this.userService.verifyPassword(user.password, password) ) 
-      throw new UnauthorizedException("Authentication failed. Please check your login details and try again.");
-
+  async signIn(user: User) {
     const payload = {sub: user.id, email: user.email};
-
     return {
       accessToken: await this.jwtService.signAsync(payload)
     }
@@ -28,6 +22,15 @@ export class AuthService {
 
   async signUp( userInput: CreateUserDto ) {
     const user = await this.userService.create(userInput);
+    return this.userService.toDto(user);
+  }
+
+  async validateUser(email: string, password: string) {
+    const user = await this.userService.findOne(email);
+
+    if( !user || !this.userService.verifyPassword(user.password, password) ) 
+      return null;
+
     return this.userService.toDto(user);
   }
 }
