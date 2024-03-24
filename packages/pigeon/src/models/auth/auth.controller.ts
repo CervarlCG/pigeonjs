@@ -21,6 +21,12 @@ export class AuthController {
     return this.authService.signUp(signUpDto);
   }
 
+  @Post("refresh-token")
+  async refreshToken(@Request() request: any) {
+    const [_, token] = request.headers.authorization.split(" ");
+    return this.authService.refreshToken(token, request.body.refreshToken)
+  }
+
   @Get("me")
   @UseGuards(JwtAuthGuard)
   async getLoggedInUser(@Request() req: any) {

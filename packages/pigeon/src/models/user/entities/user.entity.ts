@@ -1,5 +1,5 @@
 import { BaseEntity } from "src/common/database/base-entity";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity } from "typeorm";
 
 @Entity("users")
 export class User extends BaseEntity {
@@ -14,4 +14,7 @@ export class User extends BaseEntity {
 
   @Column()
   password: string;
+
+  @Column({type: 'varchar', nullable: true})
+  refreshToken: string | null;
 }

@@ -43,8 +43,11 @@ export class UserService {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
 
-  async toDto(user: User) {
-    const { password, createdAt, updatedAt, deletedAt, ...userDto } = user;
-    return userDto;
+  async setRefreshToken(userId: number,refreshToken: string | null) {
+    await this.userRepository.update( {id: userId}, { refreshToken });
+  }
+
+  toDto(user: User) {
+    return { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName };
   }
 }
