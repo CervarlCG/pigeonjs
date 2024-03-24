@@ -1,21 +1,23 @@
-import { Injectable, Scope } from "@nestjs/common";
-import { v4 } from "uuid";
+import { Injectable, Scope } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 
-interface RequestInstance {
-  requestId: string;
-  requestType: string;
-  requestPath: string;
-}
-
-@Injectable({scope: Scope.REQUEST})
+/**
+ * Service that provides a unique ID for each request.
+ * This ID can be used to trace and log requests throughout the application.
+ */
+@Injectable({ scope: Scope.REQUEST })
 export class RequestService {
-  private requestId: string;
+  private readonly _id: string;
 
   constructor() {
-    this.requestId = v4();
+    this._id = uuidv4();
   }
 
-  getID() {
-    return this.requestId;
+  /**
+   * Getter for the unique ID associated with the current request.
+   * @returns {string} The unique ID.
+   */
+  public get id(): string {
+    return this._id;
   }
 }

@@ -65,7 +65,7 @@ export class HttpInterceptor implements NestInterceptor {
         if( (isSystemException && !err.exposeMessage) || !isSystemException )
           message = messageForNoExposeError;
 
-        throw new HttpRequestException({message, statusCode: code, requestId: this.requestService.getID(), description});
+        throw new HttpRequestException({message, statusCode: code, requestId: this.requestService.id, description});
       })
     )
   }

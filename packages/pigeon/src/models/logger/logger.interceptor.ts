@@ -27,7 +27,7 @@ export class LoggingInterceptor implements NestInterceptor {
         const shouldLogError = (isSystemException && err.allowLog) || !isSystemException;
 
         if (shouldLogError) {
-          await this.loggerService.error(err, this.requestService.getID()).catch(console.error);
+          await this.loggerService.error(err, this.requestService.id).catch(console.error);
         }
 
         throw err;

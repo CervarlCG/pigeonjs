@@ -13,7 +13,7 @@ describe('AsdService', () => {
   });
 
   it('should generate request id using uuid v4', () => {
-    const requestId = service.getID();
+    const requestId = service.id;
 
     expect(requestId).toBeDefined();
     expect(requestId.length).toBe(36);
