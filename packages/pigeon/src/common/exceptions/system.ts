@@ -2,7 +2,7 @@ export class SystemException extends Error {
   exposeMessage = true;
   allowLog = false;
   
-  constructor(message: string = '') {
+  constructor(message: string = 'Unknown error.') {
     super(message);
   }
 }

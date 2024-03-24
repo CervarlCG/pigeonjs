@@ -2,6 +2,7 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nes
 import { Observable, catchError } from "rxjs";
 import { LoggerService } from "./logger.service";
 import { RequestService } from "../request/request.service";
+import { SystemException } from "src/common/exceptions/system";
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -12,7 +13,11 @@ export class LoggingInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
     return next.handle().pipe(
       catchError(async (err) => {
-        await this.loggerService.error(err, this.requestService.getID()).catch(console.error);
+        const isSystemException = err instanceof SystemException;
+
+        if( (isSystemException && err.allowLog) || !isSystemException )
+          await this.loggerService.error(err, this.requestService.getID()).catch(console.error);
+
         throw err;
       })
     )

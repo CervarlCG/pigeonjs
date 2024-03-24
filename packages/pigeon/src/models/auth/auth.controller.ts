@@ -4,7 +4,7 @@ import { CreateUserDto } from '../user/dto/create-user.dto';
 import { AppRequest } from 'src/common/interfaces/http';
 import { AuthGuard } from './auth.guard';
 import { UserService } from '../user/user.service';
-import { UnauthorizedException } from 'src/common/exceptions/server';
+import { ServerException, UnauthorizedException } from 'src/common/exceptions/system';
 
 @Controller('auth')
 export class AuthController {

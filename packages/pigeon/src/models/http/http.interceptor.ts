@@ -10,7 +10,7 @@ import {
   BadGatewayException,
   ServerException,
   SystemException,
-} from "src/common/exceptions/server";
+} from "src/common/exceptions/system";
 import { HttpRequestException } from "src/common/exceptions/http";
 import { messageForNoExposeError } from "src/common/constants/exceptions";
 

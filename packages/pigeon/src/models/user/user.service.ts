@@ -6,7 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from "bcrypt";
 import { FindOptions } from 'src/common/interfaces/repository';
 import { getDeletedAtWhereClausule } from 'src/common/helpers/repository';
-import { ResourceConflictException, UnauthorizedException } from 'src/common/exceptions/server';
+import { ResourceConflictException, UnauthorizedException } from 'src/common/exceptions/system';
 
 @Injectable()
 export class UserService {
