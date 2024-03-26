@@ -23,7 +23,7 @@ export class UserController {
    */
   @Get("me")
   async getLoggedInUser(@Request() req: any) {
-    const user = await this.userService.findOne(req.user.email);
+    const user = await this.userService.findByEmail(req.user.email);
     if( !user ) throw new UnauthorizedException();
     return this.userService.toDto(user);
   }

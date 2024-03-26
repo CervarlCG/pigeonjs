@@ -2,16 +2,20 @@ import * as request from 'supertest';
 export const jwtPattern = /^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.([A-Za-z0-9-_=]+)?$/
 
 export function generateRandomEmail() {
-  const chars = 'abcdefghijklmnopqrstuvwxyz1234567890';
+  const username = generateRandomValue();
   const domain = 'testing';
   const tld = '.com';
-  let username = '';
-
-  for (let i = 0; i < 20; i++) {
-    username += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-
   return `${username}@${domain}${tld}`;
+}
+
+
+export function generateRandomValue(length = 20) {
+  const chars = 'abcdefghijklmnopqrstuvwxyz1234567890';
+  let value = '';
+  for (let i = 0; i < length; i++) {
+    value += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return value;
 }
 
 export async function createUser(server: any) {

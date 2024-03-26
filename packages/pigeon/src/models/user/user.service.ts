@@ -7,6 +7,7 @@ import { DeleteOptions, FindOptions } from 'src/common/interfaces/repository';
 import { getDeletedAtWhereClausule } from 'src/common/helpers/repository';
 import { ResourceConflictException, UnauthorizedException } from 'src/common/exceptions/system';
 import * as bcrypt from "bcrypt";
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 /**
  * Service for managing user-related operations.
@@ -29,7 +30,7 @@ export class UserService {
    * @throws ResourceConflictException - If an user with the given email already exists.
    */
   async create(userInput: CreateUserDto) {
-    const existingUser = await this.findOne(userInput.email, {allowDeleted: true});
+    const existingUser = await this.findByEmail(userInput.email, {allowDeleted: true});
 
     // TODO: What to do when a previously deleted user try to create same account again?
     if( existingUser && existingUser.deletedAt !== null )
@@ -46,7 +47,7 @@ export class UserService {
    * @param email - The email of the user to find.
    * @param options - Options for finding the user.
    */
-  async findOne( email: string, options: FindOptions = {} ) {
+  async findByEmail( email: string, options: FindOptions = {} ) {
     return this.userRepository.findOne({where: {
       email, 
       ...getDeletedAtWhereClausule(options.allowDeleted)
@@ -60,9 +61,9 @@ export class UserService {
    */
   async delete( id: number, options: DeleteOptions = {} ) {
     if( options.hardDelete !== true )
-      this.userRepository.update({ id }, { deletedAt: new Date() });
+      await this.userRepository.update({ id }, { deletedAt: new Date() });
     else 
-      this.userRepository.delete({id});
+      await this.userRepository.delete({id});
   }
 
   /**
@@ -87,8 +88,8 @@ export class UserService {
    * @param userId - The id of the user.
    * @param refreshToken - The refresh token to set.
    */
-  async setRefreshToken(userId: number,refreshToken: string | null) {
-    await this.userRepository.update( {id: userId}, { refreshToken });
+  async update(userId: number, partialEntity: QueryDeepPartialEntity<User>) {
+    await this.userRepository.update( {id: userId}, partialEntity);
   }
 
   /**

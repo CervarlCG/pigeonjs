@@ -40,7 +40,7 @@ export class AuthService {
   async refreshToken( accessToken: string, refreshToken: string  ) {
     try {
       const { email } = this.jwtService.decode(accessToken);
-      const user = await this.userService.findOne(email);
+      const user = await this.userService.findByEmail(email);
   
       if( !user || refreshToken !== user.refreshToken ) throw new UnauthorizedException();
 
@@ -73,7 +73,7 @@ export class AuthService {
    * @returns The user DTO if valid, otherwise null.
    */
   async validateUser(email: string, password: string) {
-    const user = await this.userService.findOne(email);
+    const user = await this.userService.findByEmail(email);
 
     if( !user || !(await this.userService.verifyPassword(user.password, password))) 
       return null;
@@ -98,7 +98,7 @@ export class AuthService {
   async generateNewRefreshToken( user: User ) {
     const payload = this.getJwtPayload(user);
     const refreshToken = await this.jwtService.signAsync(payload, { expiresIn: '30 days'});
-    await this.userService.setRefreshToken(user.id, refreshToken);
+    await this.userService.update(user.id, {refreshToken});
     return refreshToken;
   }
 }
