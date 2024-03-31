@@ -1,0 +1,25 @@
+{
+  "name": "pigeon-types",
+  "version": "1.0.0",
+  "description": "> TODO: description",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "Jesus Cervantes <jesus.cervarl@gmail.com>",
+  "license": "ISC",
+  "homepage": "https://github.com/CervarlCG/pigeonjs#readme",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CervarlCG/pigeonjs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CervarlCG/pigeonjs/issues"
+  }
+}

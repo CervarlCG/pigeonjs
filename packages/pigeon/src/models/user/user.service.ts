@@ -5,8 +5,11 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { DeleteOptions, FindOptions } from 'src/common/interfaces/repository';
 import { getDeletedAtWhereClausule } from 'src/common/helpers/repository';
-import { ResourceConflictException, UnauthorizedException } from 'src/common/exceptions/system';
-import * as bcrypt from "bcrypt";
+import {
+  ResourceConflictException,
+  UnauthorizedException,
+} from 'src/common/exceptions/system';
+import * as bcrypt from 'bcrypt';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 /**
@@ -30,15 +33,24 @@ export class UserService {
    * @throws ResourceConflictException - If an user with the given email already exists.
    */
   async create(userInput: CreateUserDto) {
-    const existingUser = await this.findByEmail(userInput.email, {allowDeleted: true});
+    const existingUser = await this.findByEmail(userInput.email, {
+      allowDeleted: true,
+    });
 
     // TODO: What to do when a previously deleted user try to create same account again?
-    if( existingUser && existingUser.deletedAt !== null )
-      throw new UnauthorizedException("This account was previously deleted. Please contact site owner");
+    if (existingUser && existingUser.deletedAt !== null)
+      throw new UnauthorizedException(
+        'This account was previously deleted. Please contact site owner',
+      );
     else if (existingUser)
-      throw new ResourceConflictException("An user with the given email already exists");
+      throw new ResourceConflictException(
+        'An user with the given email already exists',
+      );
 
-    const user = this.userRepository.create({...userInput, password: await this.hashPassword(userInput.password)})
+    const user = this.userRepository.create({
+      ...userInput,
+      password: await this.hashPassword(userInput.password),
+    });
     return await this.userRepository.save(user);
   }
 
@@ -47,11 +59,13 @@ export class UserService {
    * @param email - The email of the user to find.
    * @param options - Options for finding the user.
    */
-  async findByEmail( email: string, options: FindOptions = {} ) {
-    return this.userRepository.findOne({where: {
-      email, 
-      ...getDeletedAtWhereClausule(options.allowDeleted)
-    }});
+  async findByEmail(email: string, options: FindOptions = {}) {
+    return this.userRepository.findOne({
+      where: {
+        email,
+        ...getDeletedAtWhereClausule(options.allowDeleted),
+      },
+    });
   }
 
   /**
@@ -59,11 +73,10 @@ export class UserService {
    * @param id - The id of the user to delete.
    * @param options - Options for deleting the user.
    */
-  async delete( id: number, options: DeleteOptions = {} ) {
-    if( options.hardDelete !== true )
+  async delete(id: number, options: DeleteOptions = {}) {
+    if (options.hardDelete !== true)
       await this.userRepository.update({ id }, { deletedAt: new Date() });
-    else 
-      await this.userRepository.delete({id});
+    else await this.userRepository.delete({ id });
   }
 
   /**
@@ -89,7 +102,7 @@ export class UserService {
    * @param refreshToken - The refresh token to set.
    */
   async update(userId: number, partialEntity: QueryDeepPartialEntity<User>) {
-    await this.userRepository.update( {id: userId}, partialEntity);
+    await this.userRepository.update({ id: userId }, partialEntity);
   }
 
   /**
@@ -97,6 +110,12 @@ export class UserService {
    * @param user - The user entity to convert.
    */
   toDto(user: User) {
-    return { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName };
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+    };
   }
 }

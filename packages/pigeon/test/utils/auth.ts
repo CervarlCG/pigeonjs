@@ -1,5 +1,6 @@
 import * as request from 'supertest';
-export const jwtPattern = /^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.([A-Za-z0-9-_=]+)?$/
+export const jwtPattern =
+  /^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.([A-Za-z0-9-_=]+)?$/;
 
 export function generateRandomEmail() {
   const username = generateRandomValue();
@@ -7,7 +8,6 @@ export function generateRandomEmail() {
   const tld = '.com';
   return `${username}@${domain}${tld}`;
 }
-
 
 export function generateRandomValue(length = 20) {
   const chars = 'abcdefghijklmnopqrstuvwxyz1234567890';
@@ -23,21 +23,27 @@ export async function createUser(server: any) {
     firstName: 'e2e',
     lastName: 'test',
     email: generateRandomEmail(),
-    password: 'password'
-  }
-  const expectedUser = { firstName: userDto.firstName, lastName: userDto.lastName, email: userDto.email, id: expect.any(Number) };
+    password: 'password',
+  };
+  const expectedUser = {
+    firstName: userDto.firstName,
+    lastName: userDto.lastName,
+    email: userDto.email,
+    id: expect.any(Number),
+    role: 'teammate',
+  };
   const signUp = await request(server)
-      .post("/auth/register")
-      .send(userDto)
-      .expect(201);
+    .post('/auth/register')
+    .send(userDto)
+    .expect(201);
   return { userDto, expectedUser, request: signUp };
 }
 
 export async function createUserAndLogin(server: any) {
   const signUp = await createUser(server);
   const login = await request(server)
-      .post("/auth/login")
-      .send({email: signUp.userDto.email, password: signUp.userDto.password})
-      .expect(201);
-  return { signUp, login: { request: login} }
+    .post('/auth/login')
+    .send({ email: signUp.userDto.email, password: signUp.userDto.password })
+    .expect(201);
+  return { signUp, login: { request: login } };
 }
