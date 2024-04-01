@@ -1,8 +1,16 @@
-import { CallHandler, ExecutionContext, HttpException, HttpStatus, Injectable, NestInterceptor, ServiceUnavailableException } from "@nestjs/common";
-import { Observable, catchError } from "rxjs";
-import { RequestService } from "../request/request.service";
-import { 
-  ParametersException, 
+import {
+  CallHandler,
+  ExecutionContext,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NestInterceptor,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import { Observable, catchError } from 'rxjs';
+import { RequestService } from '../request/request.service';
+import {
+  ParametersException,
   UnauthorizedException,
   ForbiddenException,
   ResourceNotFoundException,
@@ -10,9 +18,9 @@ import {
   BadGatewayException,
   ServerException,
   SystemException,
-} from "src/common/exceptions/system";
-import { HttpRequestException } from "src/common/exceptions/http";
-import { messageForNoExposeError } from "src/common/constants/exceptions";
+} from 'src/common/exceptions/system';
+import { HttpRequestException } from 'src/common/exceptions/http';
+import { messageForNoExposeError } from 'src/common/constants/exceptions';
 
 /**
  * HttpInterceptor is a NestJS interceptor that handles exceptions thrown during
@@ -23,9 +31,7 @@ import { messageForNoExposeError } from "src/common/constants/exceptions";
  */
 @Injectable()
 export class HttpInterceptor implements NestInterceptor {
-  constructor(
-    private requestService: RequestService
-  ){}
+  constructor(private requestService: RequestService) {}
 
   /**
    * Intercepts an HTTP request and handles any exceptions thrown during its processing.
@@ -33,18 +39,26 @@ export class HttpInterceptor implements NestInterceptor {
    * @param {CallHandler} next - The next call handler in the NestJS interceptor chain.
    * @returns {Observable<any>} An observable that emits the result of the request processing.
    */
-  intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
+  intercept(
+    context: ExecutionContext,
+    next: CallHandler<any>,
+  ): Observable<any> | Promise<Observable<any>> {
     const request = context.switchToHttp();
-    if( !request ) return next.handle();
+    if (!request) return next.handle();
 
     return next.handle().pipe(
       catchError(async (err) => {
         const { code, description } = this.getErrorStatusAndDescription(err);
         const message = this.getErrorMessage(err);
 
-        throw new HttpRequestException({message, statusCode: code, requestId: this.requestService.id, description});
-      })
-    )
+        throw new HttpRequestException({
+          message,
+          statusCode: code,
+          requestId: this.requestService.id,
+          description,
+        });
+      }),
+    );
   }
 
   /**
@@ -52,13 +66,16 @@ export class HttpInterceptor implements NestInterceptor {
    * @param {any} err - The error object caught during request processing.
    * @returns {{ code: HttpStatus; description: string }} An object containing the status code and description.
    */
-  private getErrorStatusAndDescription(err: any): { code: HttpStatus; description: string } {
+  private getErrorStatusAndDescription(err: any): {
+    code: HttpStatus;
+    description: string;
+  } {
     let code = HttpStatus.INTERNAL_SERVER_ERROR;
     let description = 'Internal Server Error';
 
     if (err instanceof ParametersException) {
       code = HttpStatus.BAD_REQUEST;
-      description = 'Bas Request';
+      description = 'Bad Request';
     } else if (err instanceof UnauthorizedException) {
       code = HttpStatus.UNAUTHORIZED;
       description = 'Unauthorized';
@@ -80,10 +97,16 @@ export class HttpInterceptor implements NestInterceptor {
     } else if (err instanceof ServerException) {
       code = HttpStatus.INTERNAL_SERVER_ERROR;
       description = 'Internal Server Error';
+    } else if (err instanceof HttpException) {
+      const response = err.getResponse();
+      code = err.getStatus();
+      description =
+        typeof response !== 'string'
+          ? (response as any).error || 'Internal Server Error'
+          : 'Internal Server Error';
     }
     return { code, description };
   }
-
 
   /**
    * Determines the error message to be returned to the client.
@@ -93,6 +116,14 @@ export class HttpInterceptor implements NestInterceptor {
    */
   private getErrorMessage(err: any): string {
     const isSystemException = err instanceof SystemException;
+
+    if (err instanceof HttpException && err.getStatus() < 500) {
+      const response = err.getResponse() as any;
+      return Array.isArray(response.message)
+        ? response.message[0]
+        : response.message;
+    }
+
     if ((isSystemException && !err.exposeMessage) || !isSystemException) {
       return messageForNoExposeError;
     }
