@@ -69,6 +69,20 @@ export class UserService {
   }
 
   /**
+   * Finds one user by id.
+   * @param id - The ID of the user to find.
+   * @param options - Options for finding the user.
+   */
+  async findById(id: number, options: FindOptions = {}) {
+    return this.userRepository.findOne({
+      where: {
+        id,
+        ...getDeletedAtWhereClausule(options.allowDeleted),
+      },
+    });
+  }
+
+  /**
    * Deletes a user.
    * @param id - The id of the user to delete.
    * @param options - Options for deleting the user.

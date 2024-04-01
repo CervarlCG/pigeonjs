@@ -2,7 +2,7 @@
   "name": "pigeon-types",
   "version": "1.0.0",
   "description": "> TODO: description",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {},
   "keywords": [],
   "author": "Jesus Cervantes <jesus.cervarl@gmail.com>",
@@ -21,5 +21,8 @@
   },
   "bugs": {
     "url": "https://github.com/CervarlCG/pigeonjs/issues"
+  },
+  "dependencies": {
+    "typescript": "^5.4.3"
   }
 }

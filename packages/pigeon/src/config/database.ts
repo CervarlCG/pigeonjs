@@ -1,6 +1,7 @@
-import { Log } from "src/models/logger/entities/logger.entity";
-import { User } from "src/models/user/entities/user.entity";
-import { DataSourceOptions } from "typeorm";
+import { Log } from 'src/models/logger/entities/logger.entity';
+import { User } from 'src/models/user/entities/user.entity';
+import { Workspace } from 'src/models/workspace/entities/workspace.entity';
+import { DataSourceOptions } from 'typeorm';
 
 export const databaseConfiguration = (): Partial<DataSourceOptions> => ({
   type: process.env.DATABASE_TYPE as any,
@@ -10,5 +11,5 @@ export const databaseConfiguration = (): Partial<DataSourceOptions> => ({
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
   synchronize: false,
-  entities: [User, Log]
-})
+  entities: [User, Log, Workspace],
+});

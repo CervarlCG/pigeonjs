@@ -13,6 +13,7 @@ import { HttpModule } from './models/http/http.module';
 import { HttpInterceptor } from './models/http/http.interceptor';
 import { RequestModule } from './models/request/request.module';
 import { AuthModule } from './models/auth/auth.module';
+import { WorkspaceModule } from './models/workspace/workspace.module';
 
 @Module({
   imports: [
@@ -26,18 +27,22 @@ import { AuthModule } from './models/auth/auth.module';
     LoggerModule,
     HttpModule,
     AuthModule,
+    WorkspaceModule,
   ],
   controllers: [AppController],
-  providers: [AppService, 
-  // Keep this order for interceptors to avoid problems due to RxJS LIFO execution
-  {
-    provide: APP_INTERCEPTOR,
-    useClass: HttpInterceptor,
-    scope: Scope.REQUEST,
-  },{
-    provide: APP_INTERCEPTOR,
-    useClass: LoggingInterceptor,
-    scope: Scope.REQUEST
-  }],
+  providers: [
+    AppService,
+    // Keep this order for interceptors to avoid problems due to RxJS LIFO execution
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpInterceptor,
+      scope: Scope.REQUEST,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+      scope: Scope.REQUEST,
+    },
+  ],
 })
 export class AppModule {}

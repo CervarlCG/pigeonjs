@@ -1,8 +1,8 @@
-import { BaseEntity } from "src/common/database/base-entity";
-import { Column, Entity } from "typeorm";
-import { UserRoles } from "pigeon-types";
+import { BaseEntity } from 'src/common/database/base-entity';
+import { Column, Entity } from 'typeorm';
+import { UserRoles } from 'pigeon-types/dist/enums/user';
 
-@Entity("users")
+@Entity('users')
 export class User extends BaseEntity {
   @Column()
   firstName: string;
@@ -16,13 +16,13 @@ export class User extends BaseEntity {
   @Column()
   password: string;
 
-  @Column({type: 'varchar', nullable: true})
+  @Column({ type: 'varchar', nullable: true })
   refreshToken: string | null;
 
   @Column({
-    type: "enum",
+    type: 'enum',
     enum: UserRoles,
-    default: UserRoles.TEAM_MATE
+    default: UserRoles.TEAM_MATE,
   })
   role: string;
 }
