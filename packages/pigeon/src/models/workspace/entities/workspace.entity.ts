@@ -1,5 +1,12 @@
 import { BaseEntity } from 'src/common/database/base-entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+} from 'typeorm';
 import { User } from 'src/models/user/entities/user.entity';
 
 @Entity('workspaces')
@@ -13,4 +20,15 @@ export class Workspace extends BaseEntity {
   @ManyToOne(() => User)
   @JoinColumn()
   owner: User;
+
+  @ManyToMany(() => User)
+  @JoinTable({
+    joinColumn: {
+      name: 'workspaceId',
+    },
+    inverseJoinColumn: {
+      name: 'userId',
+    },
+  })
+  users: User[];
 }

@@ -3,14 +3,17 @@ import { UserService } from '../user/user.service';
 import { UserRoles } from 'pigeon-types';
 import {
   ResourceConflictException,
+  ResourceNotFoundException,
   UnauthorizedException,
 } from 'src/common/exceptions/system';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { Workspace } from './entities/workspace.entity';
 import { getDeletedAtWhereClausule } from 'src/common/helpers/repository';
 import { FindOptions } from 'src/common/interfaces/repository';
+import { merge } from 'lodash';
+import { workspaceUsersLimit } from 'src/config/app';
 
 /**
  * Service responsible for handling workspace-related operations.
@@ -47,18 +50,52 @@ export class WorkspaceService {
   }
 
   /**
+   * Finds a workspace by its unique id.
+   * @param id The unique id of the workspace.
+   * @param options Optional find options to include deleted workspaces.
+   * @returns The workspace entity if found, otherwise null.
+   */
+  async findById(id: number, options?: FindOneOptions<Workspace>) {
+    return this.workspaceRepository.findOne(merge({ where: { id } }, options));
+  }
+
+  /**
    * Finds a workspace by its unique handle.
    * @param handle The unique handle of the workspace.
    * @param options Optional find options to include deleted workspaces.
    * @returns The workspace entity if found, otherwise null.
    */
   async findByHanle(handle: string, options: FindOptions = {}) {
-    return this.workspaceRepository.findOne({
-      where: {
-        handle,
-        ...getDeletedAtWhereClausule(options.allowDeleted),
-      },
+    return this.workspaceRepository.findOne(
+      merge({ where: { handle } }, options),
+    );
+  }
+
+  /**
+   * Adds a user to workspace.
+   * @param handle The unique handle of the workspace.
+   * @param options Optional find options to include deleted workspaces.
+   * @returns The workspace entity if found, otherwise null.
+   */
+  async addUser(userId: number, workspaceId: number) {
+    const user = await this.userService.findById(userId);
+    const workspace = await this.findById(workspaceId, {
+      relations: { users: true },
     });
+
+    if (!user) throw new ResourceNotFoundException('User not found.');
+    if (!workspace) throw new ResourceNotFoundException('Workspace not found.');
+
+    if (workspace.users.length >= workspaceUsersLimit)
+      throw new ResourceConflictException(
+        'Users limit per workspace has been reached',
+      );
+
+    if (workspace.users.find((user) => user.id === userId))
+      throw new ResourceConflictException('User already is on the workspace.');
+
+    workspace.users = [...workspace.users, user];
+    return this.workspaceRepository.save(workspace);
   }
 
   /**

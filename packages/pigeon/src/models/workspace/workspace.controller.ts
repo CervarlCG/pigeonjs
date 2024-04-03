@@ -1,4 +1,11 @@
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { WorkspaceService } from './workspace.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
@@ -24,5 +31,13 @@ export class WorkspaceController {
   ) {
     const newWorkspace = await this.workspaceService.create(body, req.user.id);
     return this.workspaceService.toDto(newWorkspace);
+  }
+
+  @Post('/:workspaceId/user/:userId')
+  async addUserToWorkspace(@Request() req: any, @Param() params: any) {
+    await this.workspaceService.addUser(
+      parseInt(params.userId),
+      parseInt(params.workspaceId),
+    );
   }
 }

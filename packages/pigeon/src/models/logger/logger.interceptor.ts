@@ -1,8 +1,13 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
-import { Observable, catchError } from "rxjs";
-import { LoggerService } from "./logger.service";
-import { RequestService } from "../request/request.service";
-import { SystemException } from "src/common/exceptions/system";
+import {
+  CallHandler,
+  ExecutionContext,
+  Injectable,
+  NestInterceptor,
+} from '@nestjs/common';
+import { Observable, catchError } from 'rxjs';
+import { LoggerService } from './logger.service';
+import { RequestService } from '../request/request.service';
+import { SystemException } from 'src/common/exceptions/system';
 
 /**
  * Interceptor that logs errors during request handling.
@@ -11,7 +16,7 @@ import { SystemException } from "src/common/exceptions/system";
 export class LoggingInterceptor implements NestInterceptor {
   constructor(
     private loggerService: LoggerService,
-    private requestService: RequestService
+    private requestService: RequestService,
   ) {}
 
   /**
@@ -20,18 +25,26 @@ export class LoggingInterceptor implements NestInterceptor {
    * @param next - handler for the request
    * @returns an Observable or a Promise of an Observable
    */
-  intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
+  intercept(
+    context: ExecutionContext,
+    next: CallHandler<any>,
+  ): Observable<any> | Promise<Observable<any>> {
     return next.handle().pipe(
       catchError(async (err) => {
         const isSystemException = err instanceof SystemException;
-        const shouldLogError = (isSystemException && err.allowLog) || !isSystemException;
+        const shouldLogError =
+          (isSystemException && err.allowLog) || !isSystemException;
 
         if (shouldLogError) {
-          await this.loggerService.error(err, this.requestService.id).catch(console.error);
+          await this.loggerService
+            .error(err, this.requestService.id)
+            .catch(console.error);
         }
 
+        if (process.env.NODE_ENV !== 'production') console.error(err);
+
         throw err;
-      })
+      }),
     );
   }
 }
