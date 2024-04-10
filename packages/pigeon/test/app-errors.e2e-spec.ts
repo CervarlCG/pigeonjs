@@ -5,7 +5,7 @@ import { AppModule } from './../src/app.module';
 import { AppService } from 'src/app.service';
 import { messageForNoExposeError } from 'src/common/constants/exceptions';
 import { LoggerService } from 'src/models/logger/logger.service';
-
+import { ServerException, SystemException } from 'src/common/exceptions/system';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -16,11 +16,13 @@ describe('AppController (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-    .overrideProvider(AppService)
-    .useValue({getStatus: () => {
-      throw new Error("Unknown error");
-    }})
-    .compile();
+      .overrideProvider(AppService)
+      .useValue({
+        getStatus: () => {
+          throw new ServerException('Unknown error');
+        },
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     loggerService = await app.resolve(LoggerService);
@@ -33,13 +35,13 @@ describe('AppController (e2e)', () => {
   });
 
   it('Should return 500 error', async () => {
-    const response = await request(app.getHttpServer()).get("/status");
+    const response = await request(app.getHttpServer()).get('/status');
     const log = await loggerService.find(response.body.requestId);
     requestId = response.body.requestId;
-    
+
     expect(response.status).toEqual(500);
     expect(response.body.statusCode).toEqual(500);
     expect(response.body.message).toEqual(messageForNoExposeError);
-    expect( log?.requestId ).toBe(response.body.requestId);
+    expect(log?.requestId).toBe(response.body.requestId);
   });
 });

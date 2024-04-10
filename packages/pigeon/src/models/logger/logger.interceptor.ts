@@ -40,8 +40,11 @@ export class LoggingInterceptor implements NestInterceptor {
             .error(err, this.requestService.id)
             .catch(console.error);
         }
-
-        if (process.env.NODE_ENV !== 'production') console.error(err);
+        if (
+          process.env.NODE_ENV !== 'production' &&
+          process.env.NODE_ENV !== 'test'
+        )
+          console.error(err);
 
         throw err;
       }),
