@@ -17,7 +17,7 @@ export class Channels1712716040487 implements MigrationInterface {
         );
     `);
     await queryRunner.query(`
-        CREATE TABLE IF NOT EXISTS worspace_channels(
+        CREATE TABLE IF NOT EXISTS workspace_channels(
             ${idColumns},
             workspaceId INT UNSIGNED NOT NULL,
             channelId INT UNSIGNED NOT NULL,
@@ -43,7 +43,7 @@ export class Channels1712716040487 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE IF EXISTS channel_users;`);
-    await queryRunner.query(`DROP TABLE IF EXISTS worspace_channels;`);
+    await queryRunner.query(`DROP TABLE IF EXISTS workspace_channels;`);
     await queryRunner.query(`DROP TABLE IF EXISTS channels;`);
   }
 }

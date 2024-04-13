@@ -23,7 +23,7 @@ export class Workspace extends BaseEntity {
 
   @ManyToMany(() => User)
   @JoinTable({
-    name: 'worspace_users',
+    name: 'workspace_users',
     joinColumn: {
       name: 'workspaceId',
     },

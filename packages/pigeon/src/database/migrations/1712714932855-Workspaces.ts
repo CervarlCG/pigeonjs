@@ -15,7 +15,7 @@ export class Workspaces1712714932855 implements MigrationInterface {
             );
         `);
     await queryRunner.query(`
-        CREATE TABLE IF NOT EXISTS worspace_users(
+        CREATE TABLE IF NOT EXISTS workspace_users(
             ${idColumns},
             userId INT UNSIGNED NOT NULL,
             workspaceId INT UNSIGNED NOT NULL,
@@ -28,7 +28,7 @@ export class Workspaces1712714932855 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS worspace_users;`);
+    await queryRunner.query(`DROP TABLE IF EXISTS workspace_users;`);
     await queryRunner.query(`DROP TABLE IF EXISTS workspaces;`);
   }
 }
