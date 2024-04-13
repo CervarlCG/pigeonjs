@@ -1,10 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Param,
   Post,
   Request,
-  SetMetadata,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -37,10 +37,21 @@ export class WorkspaceController {
   }
 
   @Post('/:workspaceId/user/:userId')
-  @SetMetadata('roles', ['admin'])
   @UseGuards(WorkspaceAdministrationGuard)
   async addUserToWorkspace(@Request() req: AppRequest, @Param() params: any) {
     await this.workspaceService.addUser(
+      parseInt(params.userId),
+      req.workspace!,
+    );
+  }
+
+  @Delete('/:workspaceId/user/:userId')
+  @UseGuards(WorkspaceAdministrationGuard)
+  async removeUserFromWorkspace(
+    @Request() req: AppRequest,
+    @Param() params: any,
+  ) {
+    await this.workspaceService.removeUser(
       parseInt(params.userId),
       req.workspace!,
     );
