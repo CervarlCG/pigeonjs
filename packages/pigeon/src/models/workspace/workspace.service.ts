@@ -44,6 +44,7 @@ export class WorkspaceService {
     const workspace = this.workspaceRepository.create({
       ...workspaceDto,
       owner: user,
+      users: [user],
     });
 
     return this.workspaceRepository.save(workspace);
@@ -85,9 +86,6 @@ export class WorkspaceService {
 
     if (!user) throw new ResourceNotFoundException('User not found.');
     if (!workspace) throw new ResourceNotFoundException('Workspace not found.');
-
-    if (user.id === workspace.owner.id)
-      throw new ResourceConflictException('User is the owner');
 
     if (workspace.users.length >= workspaceUsersLimit)
       throw new ResourceConflictException(
