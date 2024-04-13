@@ -80,11 +80,14 @@ export class WorkspaceService {
   async addUser(userId: number, workspaceId: number) {
     const user = await this.userService.findById(userId);
     const workspace = await this.findById(workspaceId, {
-      relations: { users: true },
+      relations: { users: true, owner: true },
     });
 
     if (!user) throw new ResourceNotFoundException('User not found.');
     if (!workspace) throw new ResourceNotFoundException('Workspace not found.');
+
+    if (user.id === workspace.owner.id)
+      throw new ResourceConflictException('User is the owner');
 
     if (workspace.users.length >= workspaceUsersLimit)
       throw new ResourceConflictException(
