@@ -4,11 +4,14 @@ import {
   Param,
   Post,
   Request,
+  SetMetadata,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { WorkspaceService } from './workspace.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
+import { WorkspaceAdministrationGuard } from './workspace.guard';
+import { AppRequest } from 'src/common/interfaces/http';
 
 /**
  * WorkspaceController handles all workspace-related requests
@@ -34,10 +37,12 @@ export class WorkspaceController {
   }
 
   @Post('/:workspaceId/user/:userId')
-  async addUserToWorkspace(@Request() req: any, @Param() params: any) {
+  @SetMetadata('roles', ['admin'])
+  @UseGuards(WorkspaceAdministrationGuard)
+  async addUserToWorkspace(@Request() req: AppRequest, @Param() params: any) {
     await this.workspaceService.addUser(
       parseInt(params.userId),
-      parseInt(params.workspaceId),
+      req.workspace!,
     );
   }
 }

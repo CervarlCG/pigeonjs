@@ -78,11 +78,14 @@ export class WorkspaceService {
    * @param options Optional find options to include deleted workspaces.
    * @returns The workspace entity if found, otherwise null.
    */
-  async addUser(userId: number, workspaceId: number) {
+  async addUser(userId: number, workspace: Workspace): Promise<Workspace>;
+  async addUser(userId: number, workspaceId: number): Promise<Workspace>;
+  async addUser(
+    userId: number,
+    workspaceId: Workspace | number,
+  ): Promise<Workspace> {
     const user = await this.userService.findById(userId);
-    const workspace = await this.findById(workspaceId, {
-      relations: { users: true, owner: true },
-    });
+    const workspace = await this.getWorkspaceObject(workspaceId);
 
     if (!user) throw new ResourceNotFoundException('User not found.');
     if (!workspace) throw new ResourceNotFoundException('Workspace not found.');
@@ -97,6 +100,17 @@ export class WorkspaceService {
 
     workspace.users = [...workspace.users, user];
     return this.workspaceRepository.save(workspace);
+  }
+
+  async getWorkspaceObject(workspace: number | Workspace) {
+    if (workspace instanceof Workspace) return workspace;
+    return this.findById(workspace, {
+      relations: { users: true, owner: true },
+      select: {
+        users: { id: true, email: true, role: true },
+        owner: { id: true, email: true, role: true },
+      },
+    });
   }
 
   /**
