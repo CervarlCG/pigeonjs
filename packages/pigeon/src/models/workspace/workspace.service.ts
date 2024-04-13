@@ -85,7 +85,7 @@ export class WorkspaceService {
     workspaceId: Workspace | number,
   ): Promise<Workspace> {
     const user = await this.userService.findById(userId);
-    const workspace = await this.getWorkspaceObject(workspaceId);
+    const workspace = await this.getWorkspace(workspaceId);
 
     if (!user) throw new ResourceNotFoundException('User not found.');
     if (!workspace) throw new ResourceNotFoundException('Workspace not found.');
@@ -102,7 +102,7 @@ export class WorkspaceService {
     return this.workspaceRepository.save(workspace);
   }
 
-  async getWorkspaceObject(workspace: number | Workspace) {
+  private async getWorkspace(workspace: number | Workspace) {
     if (workspace instanceof Workspace) return workspace;
     return this.findById(workspace, {
       relations: { users: true, owner: true },
