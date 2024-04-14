@@ -26,10 +26,6 @@ export class PaginationService {
     findMany: (options: FindCursorOptions) => Promise<BaseEntity[]>,
     options: FindWithCursorOptions,
   ): Promise<{ data: T[]; next: string | null }> {
-    console.log(
-      options.after,
-      this.decodeCursor(options.after || this.encodeCursor(0)),
-    );
     const limit = (options.limit || 10) + 1;
     const results = await findMany({
       cursor: this.decodeCursor(options.after || this.encodeCursor(0)),
