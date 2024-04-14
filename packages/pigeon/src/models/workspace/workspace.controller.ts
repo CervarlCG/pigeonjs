@@ -34,7 +34,7 @@ export class WorkspaceController {
     @Body() body: CreateWorkspaceDto,
   ) {
     const newWorkspace = await this.workspaceService.create(body, req.user.id);
-    return this.workspaceService.toDto(newWorkspace);
+    return { workspace: this.workspaceService.toDto(newWorkspace) };
   }
 
   @Get()
