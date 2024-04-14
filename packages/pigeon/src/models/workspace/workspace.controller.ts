@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Post,
   Request,
@@ -17,7 +18,7 @@ import { AppRequest } from 'src/common/interfaces/http';
  * WorkspaceController handles all workspace-related requests
  * and requires the user to be authenticated with a JWT token.
  */
-@Controller('workspace')
+@Controller('workspaces')
 @UseGuards(JwtAuthGuard)
 export class WorkspaceController {
   constructor(private workspaceService: WorkspaceService) {}
@@ -34,6 +35,11 @@ export class WorkspaceController {
   ) {
     const newWorkspace = await this.workspaceService.create(body, req.user.id);
     return this.workspaceService.toDto(newWorkspace);
+  }
+
+  @Get()
+  async findWorkspacesForLoggedInUser(@Request() req: AppRequest) {
+    return this.workspaceService.findByUser(req.user!.id);
   }
 
   @Post('/:workspaceId/user/:userId')

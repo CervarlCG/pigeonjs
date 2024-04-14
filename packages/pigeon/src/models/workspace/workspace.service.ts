@@ -27,6 +27,30 @@ export class WorkspaceService {
   ) {}
 
   /**
+   * Find all workspaces where the given user id is member
+   * @param userId Identifier of the user.
+   * @returns The user's workspaces.
+   */
+  async findByUser(userId: number) {
+    const userRelationColumns = Object.keys(
+      this.userService.getRelationColums(),
+    );
+    const workspaces = await this.workspaceRepository
+      .createQueryBuilder('workspaces')
+      .innerJoin('workspaces.users', 'user')
+      .leftJoinAndSelect('workspaces.users', 'users')
+      .leftJoinAndSelect('workspaces.owner', 'owner')
+      .where('user.id = :userId', { userId })
+      .select([
+        'workspaces',
+        ...userRelationColumns.map((c) => `user.${c}`),
+        ...userRelationColumns.map((c) => `owner.${c}`),
+      ])
+      .getMany();
+    return workspaces;
+  }
+
+  /**
    * Creates a new workspace and assigns it to the given user.
    * @param workspaceDto Data transfer object containing the workspace details.
    * @param userId Identifier of the user who will own the workspace.
@@ -158,6 +182,7 @@ export class WorkspaceService {
       handle,
       createdAt,
       owner: this.userService.toDto(workspace.owner),
+      users: workspace.users.map((user) => this.userService.toDto(user)),
     };
   }
 }

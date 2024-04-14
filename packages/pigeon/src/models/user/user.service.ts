@@ -120,6 +120,19 @@ export class UserService {
   }
 
   /**
+   * Retrieve most necessary user columns to avoid select unnecessary columns
+   */
+  getRelationColums() {
+    return {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      role: true,
+    };
+  }
+
+  /**
    * Converts a user entity to a user DTO.
    * @param user - The user entity to convert.
    */
