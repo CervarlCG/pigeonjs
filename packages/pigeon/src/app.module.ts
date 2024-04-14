@@ -14,6 +14,7 @@ import { HttpInterceptor } from './models/http/http.interceptor';
 import { RequestModule } from './models/request/request.module';
 import { AuthModule } from './models/auth/auth.module';
 import { WorkspaceModule } from './models/workspace/workspace.module';
+import { PaginationModule } from './models/pagination/pagination.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { WorkspaceModule } from './models/workspace/workspace.module';
     RequestModule,
     LoggerModule,
     HttpModule,
+    PaginationModule,
     AuthModule,
     WorkspaceModule,
   ],

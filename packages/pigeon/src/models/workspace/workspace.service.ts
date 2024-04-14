@@ -14,6 +14,7 @@ import { getDeletedAtWhereClausule } from 'src/common/helpers/repository';
 import { FindOptions } from 'src/common/interfaces/repository';
 import { merge } from 'lodash';
 import { workspaceUsersLimit } from 'src/config/app';
+import { PaginationService } from '../pagination/pagination.service';
 
 /**
  * Service responsible for handling workspace-related operations.
@@ -24,6 +25,7 @@ export class WorkspaceService {
     @InjectRepository(Workspace)
     private workspaceRepository: Repository<Workspace>,
     private userService: UserService,
+    private paginationService: PaginationService,
   ) {}
 
   /**
@@ -31,23 +33,37 @@ export class WorkspaceService {
    * @param userId Identifier of the user.
    * @returns The user's workspaces.
    */
-  async findByUser(userId: number) {
+  async findByUser(userId: number, after?: string) {
     const userRelationColumns = Object.keys(
       this.userService.getRelationColums(),
     );
-    const workspaces = await this.workspaceRepository
-      .createQueryBuilder('workspaces')
-      .innerJoin('workspaces.users', 'user')
-      .leftJoinAndSelect('workspaces.users', 'users')
-      .leftJoinAndSelect('workspaces.owner', 'owner')
-      .where('user.id = :userId', { userId })
-      .select([
-        'workspaces',
-        ...userRelationColumns.map((c) => `user.${c}`),
-        ...userRelationColumns.map((c) => `owner.${c}`),
-      ])
-      .getMany();
-    return workspaces;
+    const { data, next } =
+      await this.paginationService.findWithCursor<Workspace>(
+        (options) => {
+          const query = this.workspaceRepository
+            .createQueryBuilder('workspaces')
+            .innerJoin('workspaces.users', 'user')
+            .leftJoinAndSelect('workspaces.users', 'users')
+            .leftJoinAndSelect('workspaces.owner', 'owner')
+            .where('user.id = :userId', { userId });
+          if (options.cursor)
+            query.andWhere('workspaces.id <= :cursor', {
+              cursor: options.cursor,
+            });
+
+          return query
+            .take(options.limit)
+            .orderBy('workspaces.id', 'DESC')
+            .select([
+              'workspaces',
+              ...userRelationColumns.map((c) => `user.${c}`),
+              ...userRelationColumns.map((c) => `owner.${c}`),
+            ])
+            .getMany();
+        },
+        { key: 'workspaces', after },
+      );
+    return { workspaces: data, next };
   }
 
   /**
