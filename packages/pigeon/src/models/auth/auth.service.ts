@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
-import { ResourceNotFoundException, UnauthorizedException } from 'src/common/exceptions/system';
+import {
+  ResourceNotFoundException,
+  UnauthorizedException,
+} from 'src/common/exceptions/system';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { User } from '../user/entities/user.entity';
@@ -10,11 +13,10 @@ import { User } from '../user/entities/user.entity';
  */
 @Injectable()
 export class AuthService {
-
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
-  ){}
+  ) {}
 
   /**
    * Signs in a user and returns the user and access and refresh tokens.
@@ -22,13 +24,14 @@ export class AuthService {
    * @returns An object containing the user DTO and tokens.
    */
   async signIn(user: User) {
-    const payload = this.getJwtPayload(user)
-    return { 
-      user: this.userService.toDto(user), 
+    const payload = this.getJwtPayload(user);
+    return {
+      user: this.userService.toDto(user),
       token: {
         accessToken: await this.jwtService.signAsync(payload),
-        refreshToken: await this.generateNewRefreshToken(user)
-    } }
+        refreshToken: await this.generateNewRefreshToken(user),
+      },
+    };
   }
 
   /**
@@ -37,22 +40,25 @@ export class AuthService {
    * @param refreshToken - The current refresh token.
    * @returns A new access token and refresh token.
    */
-  async refreshToken( accessToken: string, refreshToken: string  ) {
+  async refreshToken(accessToken: string, refreshToken: string) {
     try {
       const { email } = this.jwtService.decode(accessToken);
       const user = await this.userService.findByEmail(email);
-  
-      if( !user || refreshToken !== user.refreshToken ) throw new UnauthorizedException();
 
-      const response: any = await this.jwtService.verifyAsync(user.refreshToken).catch(() => {});
+      if (!user || refreshToken !== user.refreshToken)
+        throw new UnauthorizedException();
 
-      if( !response?.email ) throw new UnauthorizedException();
+      const response: any = await this.jwtService
+        .verifyAsync(user.refreshToken)
+        .catch(() => {});
+
+      if (!response?.email) throw new UnauthorizedException();
 
       const { token } = await this.signIn(user);
 
       return token;
     } catch (err) {
-      throw new UnauthorizedException("Tokens provided are invalid.")
+      throw new UnauthorizedException('Tokens provided are invalid.');
     }
   }
 
@@ -61,7 +67,7 @@ export class AuthService {
    * @param userInput - The user input DTO to create a new user.
    * @returns The user DTO.
    */
-  async signUp( userInput: CreateUserDto ) {
+  async signUp(userInput: CreateUserDto) {
     const user = await this.userService.create(userInput);
     return this.userService.toDto(user);
   }
@@ -75,7 +81,10 @@ export class AuthService {
   async validateUser(email: string, password: string) {
     const user = await this.userService.findByEmail(email);
 
-    if( !user || !(await this.userService.verifyPassword(user.password, password))) 
+    if (
+      !user ||
+      !(await this.userService.verifyPassword(user.password, password))
+    )
       return null;
 
     return this.userService.toDto(user);
@@ -87,7 +96,7 @@ export class AuthService {
    * @returns The JWT payload.
    */
   getJwtPayload(user: User) {
-    return {sub: user.id, email: user.email};
+    return { sub: user.id, email: user.email };
   }
 
   /**
@@ -95,10 +104,12 @@ export class AuthService {
    * @param user - The user to generate a refresh token for.
    * @returns The new refresh token.
    */
-  async generateNewRefreshToken( user: User ) {
+  async generateNewRefreshToken(user: User) {
     const payload = this.getJwtPayload(user);
-    const refreshToken = await this.jwtService.signAsync(payload, { expiresIn: '30 days'});
-    await this.userService.update(user.id, {refreshToken});
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      expiresIn: '30 days',
+    });
+    await this.userService.update(user.id, { refreshToken });
     return refreshToken;
   }
 }

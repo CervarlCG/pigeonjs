@@ -15,6 +15,7 @@ import { RequestModule } from './models/request/request.module';
 import { AuthModule } from './models/auth/auth.module';
 import { WorkspaceModule } from './models/workspace/workspace.module';
 import { PaginationModule } from './models/pagination/pagination.module';
+import { ChannelModule } from './models/channels/channel.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PaginationModule } from './models/pagination/pagination.module';
     PaginationModule,
     AuthModule,
     WorkspaceModule,
+    ChannelModule,
   ],
   controllers: [AppController],
   providers: [

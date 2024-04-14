@@ -10,12 +10,12 @@ import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Repository } from 'typeorm';
 import { Workspace } from './entities/workspace.entity';
-import { getDeletedAtWhereClausule } from 'src/common/helpers/repository';
 import { FindOptions } from 'src/common/interfaces/repository';
 import { merge } from 'lodash';
 import { workspaceUsersLimit } from 'src/config/app';
 import { PaginationService } from '../pagination/pagination.service';
 import { EntityID } from 'src/common/types/id';
+import { User } from '../user/entities/user.entity';
 
 /**
  * Service responsible for handling workspace-related operations.
@@ -98,7 +98,22 @@ export class WorkspaceService {
    * @returns The workspace entity if found, otherwise null.
    */
   async findById(id: EntityID, options?: FindOneOptions<Workspace>) {
-    return this.workspaceRepository.findOne(merge({ where: { id } }, options));
+    return this.workspaceRepository.findOne(
+      merge(
+        {
+          where: { id },
+          relations: {
+            owner: true,
+            users: true,
+          },
+          select: {
+            users: this.userService.getRelationColums(),
+            owner: this.userService.getRelationColums(),
+          },
+        } as FindOneOptions<Workspace>,
+        options,
+      ),
+    );
   }
 
   /**
@@ -107,9 +122,22 @@ export class WorkspaceService {
    * @param options Optional find options to include deleted workspaces.
    * @returns The workspace entity if found, otherwise null.
    */
-  async findByHanle(handle: string, options: FindOptions = {}) {
+  async findByHanle(handle: string, options?: FindOneOptions<Workspace>) {
     return this.workspaceRepository.findOne(
-      merge({ where: { handle } }, options),
+      merge(
+        {
+          where: { handle },
+          relations: {
+            owner: true,
+            users: true,
+          },
+          select: {
+            users: this.userService.getRelationColums(),
+            owner: this.userService.getRelationColums(),
+          },
+        } as FindOneOptions<Workspace>,
+        options,
+      ),
     );
   }
 
@@ -184,6 +212,25 @@ export class WorkspaceService {
         owner: { id: true, email: true, role: true },
       },
     });
+  }
+
+  /**
+   * Check if a user can moderate workspace
+   * @param workspace The workspace
+   * @param user The user
+   * @param roles The allowed roles, default to admin
+   * @returns True if can based on roles params
+   */
+  async canModerateWorkspace(
+    workspace: Workspace | EntityID,
+    userId: EntityID,
+    roles: UserRoles[] = [UserRoles.ADMIN],
+  ) {
+    const workspaceEntity = await this.getWorkspace(workspace);
+    if (!workspaceEntity) return false;
+    const workspaceUser = workspaceEntity.users.find((u) => u.id === userId);
+    if (!workspaceUser) return false;
+    return roles.includes(workspaceUser.role);
   }
 
   /**

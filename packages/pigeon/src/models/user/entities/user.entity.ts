@@ -24,5 +24,5 @@ export class User extends BaseEntity {
     enum: UserRoles,
     default: UserRoles.TEAM_MATE,
   })
-  role: string;
+  role: UserRoles;
 }

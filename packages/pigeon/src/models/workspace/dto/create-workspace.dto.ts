@@ -1,4 +1,6 @@
 import { IsNotEmpty, MaxLength, MinLength, Matches } from 'class-validator';
+import { handleFormat } from 'src/common/constants/messages';
+import { HandlePattern } from 'src/common/constants/regex';
 
 export class CreateWorkspaceDto {
   @IsNotEmpty()
@@ -9,9 +11,8 @@ export class CreateWorkspaceDto {
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(100)
-  @Matches(/^[a-zA-Z0-9_-]+$/, {
-    message:
-      'Handle only can contain letters (uppercase and lowercase), numbers, hyphens, and underscores',
+  @Matches(HandlePattern, {
+    message: handleFormat,
   })
   handle: string;
 }
