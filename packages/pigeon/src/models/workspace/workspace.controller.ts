@@ -13,6 +13,8 @@ import { WorkspaceService } from './workspace.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { WorkspaceAdministrationGuard } from './workspace.guard';
 import { AppRequest } from 'src/common/interfaces/http';
+import { UpdateUserInWorkspaceDto } from './dto/user-workspace.dto';
+import { parseID } from 'src/common/utils/id';
 
 /**
  * WorkspaceController handles all workspace-related requests
@@ -49,23 +51,23 @@ export class WorkspaceController {
     };
   }
 
-  @Post('/:workspaceId/user/:userId')
+  @Post('/:workspaceId/user')
   @UseGuards(WorkspaceAdministrationGuard)
-  async addUserToWorkspace(@Request() req: AppRequest, @Param() params: any) {
-    await this.workspaceService.addUser(
-      parseInt(params.userId),
-      req.workspace!,
-    );
+  async addUserToWorkspace(
+    @Request() req: AppRequest,
+    @Body() body: UpdateUserInWorkspaceDto,
+  ) {
+    await this.workspaceService.addUser(parseID(body.userId), req.workspace!);
   }
 
-  @Delete('/:workspaceId/user/:userId')
+  @Delete('/:workspaceId/user')
   @UseGuards(WorkspaceAdministrationGuard)
   async removeUserFromWorkspace(
     @Request() req: AppRequest,
-    @Param() params: any,
+    @Body() body: UpdateUserInWorkspaceDto,
   ) {
     await this.workspaceService.removeUser(
-      parseInt(params.userId),
+      parseID(body.userId),
       req.workspace!,
     );
   }
