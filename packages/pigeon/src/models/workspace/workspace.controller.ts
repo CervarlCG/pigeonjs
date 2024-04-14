@@ -39,10 +39,14 @@ export class WorkspaceController {
 
   @Get()
   async findWorkspacesForLoggedInUser(@Request() req: AppRequest) {
-    return this.workspaceService.findByUser(
+    const { workspaces, ...rest } = await this.workspaceService.findByUser(
       req.user!.id,
       req.query.after as string,
     );
+    return {
+      workspaces: workspaces.map((w) => this.workspaceService.toDto(w)),
+      ...rest,
+    };
   }
 
   @Post('/:workspaceId/user/:userId')
