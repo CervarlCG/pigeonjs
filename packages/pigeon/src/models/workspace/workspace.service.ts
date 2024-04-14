@@ -15,6 +15,7 @@ import { FindOptions } from 'src/common/interfaces/repository';
 import { merge } from 'lodash';
 import { workspaceUsersLimit } from 'src/config/app';
 import { PaginationService } from '../pagination/pagination.service';
+import { EntityID } from 'src/common/types/id';
 
 /**
  * Service responsible for handling workspace-related operations.
@@ -33,7 +34,7 @@ export class WorkspaceService {
    * @param userId Identifier of the user.
    * @returns The user's workspaces.
    */
-  async findByUser(userId: number, after?: string) {
+  async findByUser(userId: EntityID, after?: string) {
     const userRelationColumns = Object.keys(
       this.userService.getRelationColums(),
     );
@@ -72,7 +73,7 @@ export class WorkspaceService {
    * @param userId Identifier of the user who will own the workspace.
    * @returns The saved workspace entity.
    */
-  async create(workspaceDto: CreateWorkspaceDto, userId: number) {
+  async create(workspaceDto: CreateWorkspaceDto, userId: EntityID) {
     const user = await this.userService.findById(userId);
 
     if (!user || user.role !== UserRoles.ADMIN)
@@ -96,7 +97,7 @@ export class WorkspaceService {
    * @param options Optional find options to include deleted workspaces.
    * @returns The workspace entity if found, otherwise null.
    */
-  async findById(id: number, options?: FindOneOptions<Workspace>) {
+  async findById(id: EntityID, options?: FindOneOptions<Workspace>) {
     return this.workspaceRepository.findOne(merge({ where: { id } }, options));
   }
 
@@ -118,11 +119,11 @@ export class WorkspaceService {
    * @param workspaceId The workspace id or workspace object
    * @returns The workspace updated.
    */
-  async addUser(userId: number, workspace: Workspace): Promise<Workspace>;
-  async addUser(userId: number, workspaceId: number): Promise<Workspace>;
+  async addUser(userId: EntityID, workspace: Workspace): Promise<Workspace>;
+  async addUser(userId: EntityID, workspaceId: EntityID): Promise<Workspace>;
   async addUser(
-    userId: number,
-    workspaceId: Workspace | number,
+    userId: EntityID,
+    workspaceId: Workspace | EntityID,
   ): Promise<Workspace> {
     const user = await this.userService.findById(userId);
     const workspace = await this.getWorkspace(workspaceId);
@@ -148,11 +149,11 @@ export class WorkspaceService {
    * @param workspaceId The workspace id or workspace object
    * @returns The workspace updated.
    */
-  async removeUser(userId: number, workspace: Workspace): Promise<Workspace>;
-  async removeUser(userId: number, workspaceId: number): Promise<Workspace>;
+  async removeUser(userId: EntityID, workspace: Workspace): Promise<Workspace>;
+  async removeUser(userId: EntityID, workspaceId: EntityID): Promise<Workspace>;
   async removeUser(
-    userId: number,
-    workspaceId: Workspace | number,
+    userId: EntityID,
+    workspaceId: Workspace | EntityID,
   ): Promise<Workspace> {
     const user = await this.userService.findById(userId);
     const workspace = await this.getWorkspace(workspaceId);
@@ -174,7 +175,7 @@ export class WorkspaceService {
    * @param workspace The workspace or the workspace id
    * @returns The workspace.
    */
-  private async getWorkspace(workspace: number | Workspace) {
+  private async getWorkspace(workspace: EntityID | Workspace) {
     if (workspace instanceof Workspace) return workspace;
     return this.findById(workspace, {
       relations: { users: true, owner: true },

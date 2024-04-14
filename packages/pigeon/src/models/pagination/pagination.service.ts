@@ -1,16 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { BaseEntity } from 'src/common/database/base-entity';
+import { EntityID } from 'src/common/types/id';
 import { EntityTarget } from 'typeorm';
 
-interface CursorProps {
-  after?: string;
-  before?: string;
-  first?: number;
-  last?: number;
-}
-
 interface FindCursorOptions {
-  cursor: number;
+  cursor: EntityID;
   limit: number;
 }
 
@@ -38,12 +32,12 @@ export class PaginationService {
     };
   }
 
-  decodeCursor(cursor: string): number {
+  decodeCursor(cursor: string): EntityID {
     const decoded = parseInt(Buffer.from(cursor, 'base64').toString('utf-8'));
     return !isNaN(decoded) ? decoded : 0;
   }
 
-  encodeCursor(cursor: number): string {
+  encodeCursor(cursor: EntityID): string {
     return Buffer.from(cursor.toString()).toString('base64');
   }
 }

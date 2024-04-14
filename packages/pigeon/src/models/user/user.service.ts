@@ -11,6 +11,7 @@ import {
 } from 'src/common/exceptions/system';
 import * as bcrypt from 'bcrypt';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { EntityID } from 'src/common/types/id';
 
 /**
  * Service for managing user-related operations.
@@ -73,7 +74,7 @@ export class UserService {
    * @param id - The ID of the user to find.
    * @param options - Options for finding the user.
    */
-  async findById(id: number, options: FindOptions = {}) {
+  async findById(id: EntityID, options: FindOptions = {}) {
     return this.userRepository.findOne({
       where: {
         id,
@@ -87,7 +88,7 @@ export class UserService {
    * @param id - The id of the user to delete.
    * @param options - Options for deleting the user.
    */
-  async delete(id: number, options: DeleteOptions = {}) {
+  async delete(id: EntityID, options: DeleteOptions = {}) {
     if (options.hardDelete !== true)
       await this.userRepository.update({ id }, { deletedAt: new Date() });
     else await this.userRepository.delete({ id });
@@ -115,7 +116,7 @@ export class UserService {
    * @param userId - The id of the user.
    * @param refreshToken - The refresh token to set.
    */
-  async update(userId: number, partialEntity: QueryDeepPartialEntity<User>) {
+  async update(userId: EntityID, partialEntity: QueryDeepPartialEntity<User>) {
     await this.userRepository.update({ id: userId }, partialEntity);
   }
 
