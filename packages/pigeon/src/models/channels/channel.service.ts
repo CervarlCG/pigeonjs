@@ -13,6 +13,7 @@ import { Privacy } from 'src/common/constants/private';
 import { parseID } from 'src/common/utils/id';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { UserService } from '../user/user.service';
+import { UserRoles } from 'pigeon-types';
 
 @Injectable()
 export class ChannelService {
@@ -89,6 +90,18 @@ export class ChannelService {
     channel.privacy = data.privacy || channel.privacy;
 
     return this.channelRepository.save(channel);
+  }
+
+  async canModerateChannel(
+    channel: Channel | EntityID,
+    userId: EntityID,
+    roles: UserRoles[] = [UserRoles.ADMIN],
+  ) {
+    const channelEntity = await this.getChannel(channel);
+    if (!channelEntity) return false;
+    const channelUser = channelEntity.users.find((u) => u.id === userId);
+    if (!channelUser) return false;
+    return roles.includes(channelUser.role);
   }
 
   toDto(channel: Channel) {

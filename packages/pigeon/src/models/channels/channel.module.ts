@@ -14,6 +14,7 @@ import { ChannelMiddleware } from './channel.middleware';
   imports: [TypeOrmModule.forFeature([Channel, Workspace, User])],
   providers: [ChannelService, PaginationService, WorkspaceService, UserService],
   controllers: [ChannelController],
+  exports: [ChannelService],
 })
 export class ChannelModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
