@@ -12,6 +12,7 @@ import { WorkspaceService } from '../workspace/workspace.service';
 import { Privacy } from 'src/common/constants/private';
 import { parseID } from 'src/common/utils/id';
 import { UpdateChannelDto } from './dto/update-channel.dto';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class ChannelService {
@@ -19,6 +20,7 @@ export class ChannelService {
     @InjectRepository(Channel)
     private channelRepository: Repository<Channel>,
     private workspaceService: WorkspaceService,
+    private userService: UserService,
   ) {}
 
   async findById(id: EntityID) {
@@ -39,23 +41,27 @@ export class ChannelService {
     return this.findById(channel);
   }
 
-  async create(channelData: CreateChannelDto) {
+  async create(channelData: CreateChannelDto, userId: EntityID) {
     if (await this.findByHandle(channelData.handle))
       throw new ResourceConflictException(
         'Channel with the given handle already exists',
       );
+
     const workspace = await this.workspaceService.findById(
       parseID(channelData.workspaceId),
     );
-
     if (!workspace)
       throw new ResourceNotFoundException("Workspace doesn't exist.");
+
+    const user = await this.userService.findById(userId);
+    if (!user) throw new ResourceNotFoundException('User not found.');
 
     const channel = this.channelRepository.create({
       ...channelData,
       privacy: channelData.isDM ? Privacy.PRIVATE : channelData.privacy,
     });
     channel.workspace = workspace;
+    channel.users = [user];
 
     return this.channelRepository.save(channel);
   }
@@ -78,6 +84,7 @@ export class ChannelService {
       isDM: channel.isDM,
       workspaceId: channel.workspace.id,
       createdAt: channel.createdAt,
+      users: channel.users.map((user) => this.userService.toDto(user)),
     };
   }
 }

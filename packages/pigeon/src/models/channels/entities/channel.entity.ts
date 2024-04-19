@@ -1,7 +1,8 @@
 import { BaseEntity } from 'src/common/database/base-entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
 import { Privacy } from 'src/common/constants/private';
 import { Workspace } from 'src/models/workspace/entities/workspace.entity';
+import { User } from 'src/models/user/entities/user.entity';
 
 @Entity('channels')
 export class Channel extends BaseEntity {
@@ -19,4 +20,16 @@ export class Channel extends BaseEntity {
 
   @ManyToOne(() => Workspace)
   workspace: Workspace;
+
+  @ManyToMany(() => User)
+  @JoinTable({
+    name: 'channel_users',
+    joinColumn: {
+      name: 'channelId',
+    },
+    inverseJoinColumn: {
+      name: 'userId',
+    },
+  })
+  users: User[];
 }

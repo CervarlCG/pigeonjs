@@ -5,3 +5,7 @@ export interface AppRequest extends Request {
   user?: { id: number; email: string };
   workspace?: Workspace;
 }
+
+export interface UserRequest extends Request {
+  user: { id: number; email: string };
+}
