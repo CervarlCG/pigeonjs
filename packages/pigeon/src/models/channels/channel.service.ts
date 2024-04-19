@@ -11,6 +11,7 @@ import {
 import { WorkspaceService } from '../workspace/workspace.service';
 import { Privacy } from 'src/common/constants/private';
 import { parseID } from 'src/common/utils/id';
+import { UpdateChannelDto } from './dto/update-channel.dto';
 
 @Injectable()
 export class ChannelService {
@@ -26,6 +27,16 @@ export class ChannelService {
 
   async findByHandle(handle: string) {
     return this.channelRepository.findOne({ where: { handle } });
+  }
+
+  /**
+   * Gets a workspace
+   * @param workspace The workspace or the workspace id
+   * @returns The workspace.
+   */
+  private async getChannel(channel: EntityID | Channel) {
+    if (channel instanceof Channel) return channel;
+    return this.findById(channel);
   }
 
   async create(channelData: CreateChannelDto) {
@@ -46,6 +57,15 @@ export class ChannelService {
     });
     channel.workspace = workspace;
 
+    return this.channelRepository.save(channel);
+  }
+
+  async update(data: UpdateChannelDto, channelId: EntityID | Channel) {
+    const channel = await this.getChannel(channelId);
+
+    if (!channel) throw new ResourceNotFoundException(`Channel was not found`);
+
+    channel.name = data.name;
     return this.channelRepository.save(channel);
   }
 
