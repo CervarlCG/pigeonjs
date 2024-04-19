@@ -11,17 +11,33 @@ import { CreateChannelDto } from './dto/create-channel.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ChannelModerationGuard } from './channel.guard';
 import { UserRequest } from 'src/common/interfaces/http';
+import { Channel } from './entities/channel.entity';
+import { UpdateChannelDto } from './dto/update-channel.dto';
+
+export interface ChannelRequest extends UserRequest {
+  channel: Channel;
+}
 
 @Controller('/channels')
-@UseGuards(JwtAuthGuard, ChannelModerationGuard)
+@UseGuards(JwtAuthGuard)
 export class ChannelController {
   constructor(private channelService: ChannelService) {}
 
   @Post()
+  @UseGuards(ChannelModerationGuard)
   async create(@Body() body: CreateChannelDto, @Request() req: UserRequest) {
     return {
       channel: this.channelService.toDto(
         await this.channelService.create(body, req.user.id),
+      ),
+    };
+  }
+
+  @Patch('/:channelId')
+  async update(@Body() body: UpdateChannelDto, @Request() req: ChannelRequest) {
+    return {
+      channel: this.channelService.toDto(
+        await this.channelService.update(body, req.channel),
       ),
     };
   }

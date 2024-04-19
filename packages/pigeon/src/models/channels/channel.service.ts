@@ -24,11 +24,25 @@ export class ChannelService {
   ) {}
 
   async findById(id: EntityID) {
-    return this.channelRepository.findOne({ where: { id } });
+    return this.channelRepository.findOne({
+      where: { id },
+      relations: { users: true, workspace: true },
+      select: {
+        users: this.userService.getRelationColums(),
+        workspace: { id: true },
+      },
+    });
   }
 
   async findByHandle(handle: string) {
-    return this.channelRepository.findOne({ where: { handle } });
+    return this.channelRepository.findOne({
+      where: { handle },
+      relations: { users: true, workspace: true },
+      select: {
+        users: this.userService.getRelationColums(),
+        workspace: { id: true },
+      },
+    });
   }
 
   /**
@@ -71,7 +85,9 @@ export class ChannelService {
 
     if (!channel) throw new ResourceNotFoundException(`Channel was not found`);
 
-    channel.name = data.name;
+    channel.name = data.name || channel.name;
+    channel.privacy = data.privacy || channel.privacy;
+
     return this.channelRepository.save(channel);
   }
 
