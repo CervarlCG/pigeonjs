@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Patch,
   Post,
   Request,
@@ -44,5 +45,11 @@ export class ChannelController {
         await this.channelService.update(body, req.channel),
       ),
     };
+  }
+
+  @Delete('/:channelId')
+  @UseGuards(ChannelModerationGuard)
+  async delete(@Request() req: ChannelRequest) {
+    await this.channelService.delete(req.channel.id);
   }
 }

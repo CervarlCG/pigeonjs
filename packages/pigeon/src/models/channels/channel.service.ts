@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EntityID } from 'src/common/types/id';
-import { Repository } from 'typeorm';
+import { Entity, Repository } from 'typeorm';
 import { Channel } from './entities/channel.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateChannelDto } from './dto/create-channel.dto';
@@ -102,6 +102,10 @@ export class ChannelService {
     const channelUser = channelEntity.users.find((u) => u.id === userId);
     if (!channelUser) return false;
     return roles.includes(channelUser.role);
+  }
+
+  async delete(id: EntityID) {
+    return this.channelRepository.softDelete({ id });
   }
 
   toDto(channel: Channel) {
