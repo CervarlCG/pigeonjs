@@ -5,7 +5,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { AppRequest } from 'src/common/interfaces/http';
+import { AppRequest, UserRequest } from 'src/common/interfaces/http';
 import { UserRoles } from 'pigeon-types';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { ChannelService } from './channel.service';
@@ -57,6 +57,20 @@ export class ChannelModerationGuard implements CanActivate {
       channel,
       request.user!.id,
       this.roles,
+    );
+  }
+}
+
+@Injectable()
+export class ChannelMemberGuard implements CanActivate {
+  constructor(private channelService: ChannelService) {}
+
+  async canActivate(context: ExecutionContext) {
+    const request = context.switchToHttp().getRequest<UserRequest>();
+
+    return this.channelService.hasUser(
+      parseID(request.params.channelId.toString()),
+      request.user.id,
     );
   }
 }

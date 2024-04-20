@@ -12,6 +12,7 @@ import { ChannelService } from './channel.service';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
+  ChannelMemberGuard,
   ChannelModerationGuard,
   ChannelWorkspaceModerationGuard,
 } from './channel.guard';
@@ -19,6 +20,8 @@ import { UserRequest } from 'src/common/interfaces/http';
 import { Channel } from './entities/channel.entity';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { WorkspaceMemberGuard } from '../workspace/workspace.guard';
+import { UpdateUserAtChannelDto } from './dto/add-user-to-channel.dto';
+import { parseID } from 'src/common/utils/id';
 
 export interface ChannelRequest extends UserRequest {
   channel: Channel;
@@ -62,5 +65,18 @@ export class ChannelController {
   @UseGuards(ChannelModerationGuard)
   async delete(@Request() req: ChannelRequest) {
     await this.channelService.delete(req.channel.id);
+  }
+
+  @Post('/:channelId/user')
+  @UseGuards(ChannelMemberGuard)
+  async addUser(
+    @Request() req: ChannelRequest,
+    @Body() body: UpdateUserAtChannelDto,
+  ) {
+    return {
+      channel: this.channelService.toDto(
+        await this.channelService.addUser(req.channel, parseID(body.userId)),
+      ),
+    };
   }
 }

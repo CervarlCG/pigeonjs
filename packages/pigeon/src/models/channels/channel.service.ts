@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { EntityID } from 'src/common/types/id';
-import { Entity, LessThanOrEqual, Repository } from 'typeorm';
-import { Channel } from './entities/channel.entity';
+import { Entity, JoinTable, LessThanOrEqual, Repository } from 'typeorm';
+import { Channel, CHANNEL_TO_USERS_TABLE } from './entities/channel.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import {
+  ForbiddenException,
   ResourceConflictException,
   ResourceNotFoundException,
 } from 'src/common/exceptions/system';
@@ -15,6 +16,7 @@ import { UpdateChannelDto } from './dto/update-channel.dto';
 import { UserService } from '../user/user.service';
 import { UserRoles } from 'pigeon-types';
 import { PaginationService } from '../pagination/pagination.service';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class ChannelService {
@@ -75,6 +77,23 @@ export class ChannelService {
     return { channels: data, next };
   }
 
+  async addUser(channelId: Channel | EntityID, userId: EntityID) {
+    const channel = await this.getChannel(channelId);
+    if (!channel) throw new ResourceNotFoundException('Channel not found');
+
+    const user = await this.userService.findById(userId);
+    if (!user) throw new ResourceNotFoundException('User not found.');
+
+    if (!(await this.workspaceService.hasUser(channel.workspace.id, userId)))
+      throw new ForbiddenException('User is not member of the workspace');
+
+    if (channel.users.find((u) => u.id === userId)) return channel;
+
+    channel.users = [...channel.users, user];
+
+    return this.channelRepository.save(channel);
+  }
+
   /**
    * Gets a workspace
    * @param workspace The workspace or the workspace id
@@ -121,6 +140,10 @@ export class ChannelService {
     return this.channelRepository.save(channel);
   }
 
+  async delete(id: EntityID) {
+    return this.channelRepository.softDelete({ id });
+  }
+
   async canModerateChannel(
     channel: Channel | EntityID,
     userId: EntityID,
@@ -133,8 +156,15 @@ export class ChannelService {
     return roles.includes(channelUser.role);
   }
 
-  async delete(id: EntityID) {
-    return this.channelRepository.softDelete({ id });
+  async hasUser(channelId: EntityID, userId: EntityID) {
+    const relation = this.channelRepository.metadata.manyToManyRelations.find(
+      (r) => r.joinTableName === CHANNEL_TO_USERS_TABLE,
+    );
+    const result = await this.channelRepository.query(
+      `SELECT COUNT(*) as count FROM ${relation!.joinTableName} WHERE channelId = ? and userId = ? LIMIT 1`,
+      [channelId, userId],
+    );
+    return parseInt(result[0].count) === 1;
   }
 
   toDto(channel: Channel) {
