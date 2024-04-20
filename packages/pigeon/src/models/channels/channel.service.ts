@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EntityID } from 'src/common/types/id';
-import { Entity, Repository } from 'typeorm';
+import { Entity, LessThanOrEqual, Repository } from 'typeorm';
 import { Channel } from './entities/channel.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateChannelDto } from './dto/create-channel.dto';
@@ -14,6 +14,7 @@ import { parseID } from 'src/common/utils/id';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { UserService } from '../user/user.service';
 import { UserRoles } from 'pigeon-types';
+import { PaginationService } from '../pagination/pagination.service';
 
 @Injectable()
 export class ChannelService {
@@ -22,6 +23,7 @@ export class ChannelService {
     private channelRepository: Repository<Channel>,
     private workspaceService: WorkspaceService,
     private userService: UserService,
+    private paginationService: PaginationService,
   ) {}
 
   async findById(id: EntityID) {
@@ -44,6 +46,33 @@ export class ChannelService {
         workspace: { id: true },
       },
     });
+  }
+
+  async listByUser(userId: EntityID, after?: string) {
+    const userRelationColumns = Object.keys(
+      this.userService.getRelationColums(),
+    );
+    const { data, next } = await this.paginationService.findWithCursor<Channel>(
+      (options) => {
+        const query = this.channelRepository
+          .createQueryBuilder('channels')
+          .innerJoin('channels.users', 'user')
+          .leftJoinAndSelect('channels.users', 'users')
+          .where('user.id = :userId', { userId });
+        if (options.cursor)
+          query.andWhere('channels.id <= :cursor', {
+            cursor: options.cursor,
+          });
+
+        return query
+          .take(options.limit)
+          .orderBy('channels.id', 'DESC')
+          .select(['channels', ...userRelationColumns.map((c) => `user.${c}`)])
+          .getMany();
+      },
+      { key: 'channels', after },
+    );
+    return { channels: data, next };
   }
 
   /**

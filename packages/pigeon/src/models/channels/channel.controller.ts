@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Patch,
   Post,
   Request,
@@ -26,6 +27,14 @@ export interface ChannelRequest extends UserRequest {
 @UseGuards(JwtAuthGuard)
 export class ChannelController {
   constructor(private channelService: ChannelService) {}
+
+  @Get('/')
+  list(@Request() req: UserRequest) {
+    return this.channelService.listByUser(
+      req.user.id,
+      req.query.after?.toString(),
+    );
+  }
 
   @Post()
   @UseGuards(ChannelWorkspaceModerationGuard)
