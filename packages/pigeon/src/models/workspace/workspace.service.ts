@@ -172,6 +172,24 @@ export class WorkspaceService {
   }
 
   /**
+   * Check if a user is member of a workspace
+   * @param workspaceId The workspace id
+   * @param userId The user id
+   * @returns True if the user is member of the workspace
+   */
+  async hasUser(workspaceId: EntityID, userId: EntityID) {
+    const queryResult = await this.workspaceRepository
+      .createQueryBuilder('workspace')
+      .leftJoinAndSelect('workspace.users', 'user')
+      .where('workspace.id = :workspaceId', { workspaceId })
+      .andWhere('user.id = :userId', { userId })
+      .andWhere('workspace.deletedAt IS null')
+      .select(['workspace.id', 'user.id'])
+      .getCount();
+    return queryResult > 0;
+  }
+
+  /**
    * Removes a user from a workspace.
    * @param userid The user id.
    * @param workspaceId The workspace id or workspace object

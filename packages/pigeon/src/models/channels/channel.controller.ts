@@ -18,6 +18,7 @@ import {
 import { UserRequest } from 'src/common/interfaces/http';
 import { Channel } from './entities/channel.entity';
 import { UpdateChannelDto } from './dto/update-channel.dto';
+import { WorkspaceMemberGuard } from '../workspace/workspace.guard';
 
 export interface ChannelRequest extends UserRequest {
   channel: Channel;
@@ -29,6 +30,7 @@ export class ChannelController {
   constructor(private channelService: ChannelService) {}
 
   @Get('/')
+  @UseGuards(WorkspaceMemberGuard)
   list(@Request() req: UserRequest) {
     return this.channelService.listByUser(
       req.user.id,
