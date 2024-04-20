@@ -10,7 +10,6 @@ import { UserRoles } from 'pigeon-types';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { ChannelService } from './channel.service';
 import { parseID } from 'src/common/utils/id';
-import { Observable } from 'rxjs';
 
 @Injectable()
 export class ChannelWorkspaceModerationGuard implements CanActivate {
