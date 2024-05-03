@@ -21,7 +21,7 @@ export class Workspace extends BaseEntity {
   @JoinColumn()
   owner: User;
 
-  @ManyToMany(() => User)
+  @ManyToMany(() => User, { cascade: true })
   @JoinTable({
     name: 'workspace_users',
     joinColumn: {
