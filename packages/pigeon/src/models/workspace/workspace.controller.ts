@@ -11,7 +11,11 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { WorkspaceService } from './workspace.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
-import { WorkspaceAdministrationGuard } from './workspace.guard';
+import {
+  WorkspaceAdministrationGuard,
+  WorkspaceMemberGuard,
+  WorkspaceModerationGuard,
+} from './workspace.guard';
 import { AppRequest } from 'src/common/interfaces/http';
 import { UpdateUserInWorkspaceDto } from './dto/user-workspace.dto';
 import { parseID } from 'src/common/utils/id';
@@ -51,17 +55,30 @@ export class WorkspaceController {
     };
   }
 
+  @Get('/:workspaceId')
+  @UseGuards(WorkspaceMemberGuard)
+  async findWorkspace(@Request() req: AppRequest) {
+    return { workspace: req.workspace };
+  }
+
   @Post('/:workspaceId/user')
-  @UseGuards(WorkspaceAdministrationGuard)
+  @UseGuards(WorkspaceModerationGuard)
   async addUserToWorkspace(
     @Request() req: AppRequest,
     @Body() body: UpdateUserInWorkspaceDto,
   ) {
-    await this.workspaceService.addUser(parseID(body.userId), req.workspace!);
+    return {
+      workspace: this.workspaceService.toDto(
+        await this.workspaceService.addUser(
+          parseID(body.userId),
+          req.workspace!,
+        ),
+      ),
+    };
   }
 
   @Delete('/:workspaceId/user')
-  @UseGuards(WorkspaceAdministrationGuard)
+  @UseGuards(WorkspaceModerationGuard)
   async removeUserFromWorkspace(
     @Request() req: AppRequest,
     @Body() body: UpdateUserInWorkspaceDto,

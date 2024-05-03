@@ -77,7 +77,9 @@ export class WorkspaceService {
     const user = await this.userService.findById(userId);
 
     if (!user || user.role !== UserRoles.ADMIN)
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(
+        "User doesn't have permissions to create a workspace.",
+      );
 
     if (await this.findByHanle(workspaceDto.handle))
       throw new ResourceConflictException('Workspace already exists.');
@@ -142,6 +144,18 @@ export class WorkspaceService {
   }
 
   /**
+   * Remove an entity
+   * @param id The Entity ID.
+   * @param soft If soft delete
+   */
+  async delete(id: EntityID, soft = true) {
+    const workspace = await this.findById(id);
+    if (!workspace) return;
+    if (soft) await this.workspaceRepository.softRemove([workspace]);
+    else await this.workspaceRepository.remove([workspace]);
+  }
+
+  /**
    * Adds a user to workspace.
    * @param userid The user id.
    * @param workspaceId The workspace id or workspace object
@@ -195,8 +209,6 @@ export class WorkspaceService {
    * @param workspaceId The workspace id or workspace object
    * @returns The workspace updated.
    */
-  async removeUser(userId: EntityID, workspace: Workspace): Promise<Workspace>;
-  async removeUser(userId: EntityID, workspaceId: EntityID): Promise<Workspace>;
   async removeUser(
     userId: EntityID,
     workspaceId: Workspace | EntityID,

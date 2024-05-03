@@ -29,17 +29,15 @@ export class WorkspaceModerationGuard extends WorkspaceAdministrationGuard {
 
 @Injectable()
 export class WorkspaceMemberGuard implements CanActivate {
-  roles = [UserRoles.ADMIN, UserRoles.MODERATOR];
-
   constructor(private workspaceService: WorkspaceService) {}
 
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<AppRequest>();
-
-    if (!request.query.workspaceId) return false;
+    const workspaceId = request.params.workspaceId || request.query.workspaceId;
+    if (!workspaceId) return false;
 
     return await this.workspaceService.hasUser(
-      parseID(request.query.workspaceId.toString()),
+      parseID(workspaceId.toString()),
       request.user!.id,
     );
   }
