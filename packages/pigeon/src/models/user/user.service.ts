@@ -12,6 +12,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { EntityID } from 'src/common/types/id';
+import { UserRoles } from 'pigeon-types';
 
 /**
  * Service for managing user-related operations.
@@ -33,7 +34,7 @@ export class UserService {
    * @throws UnauthorizedException - If the user was previously deleted.
    * @throws ResourceConflictException - If an user with the given email already exists.
    */
-  async create(userInput: CreateUserDto) {
+  async create(userInput: CreateUserDto, role = UserRoles.TEAM_MATE) {
     const existingUser = await this.findByEmail(userInput.email, {
       allowDeleted: true,
     });
@@ -51,6 +52,7 @@ export class UserService {
     const user = this.userRepository.create({
       ...userInput,
       password: await this.hashPassword(userInput.password),
+      role,
     });
     return await this.userRepository.save(user);
   }
