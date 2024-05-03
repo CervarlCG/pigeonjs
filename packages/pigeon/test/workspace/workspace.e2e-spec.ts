@@ -12,6 +12,7 @@ import {
   addUserToWorkspace,
   createWorkspace,
   getWorkspace,
+  listWorkspaces,
 } from '../helper/workspace';
 
 describe('WorkspaceController (Create)', () => {
@@ -86,6 +87,38 @@ describe('WorkspaceController (Create)', () => {
     expect(responseUser3.statusCode).toBe(201);
 
     await workspaceService.delete(responseUser3.body.workspace.id, false);
+  });
+
+  it('Should return all workspace where user is member', async () => {
+    const adminUser = users[1];
+    const teammateUser = users[2];
+    const [workspace1] = await createWorkspace(app, adminUser);
+    const [workspace2] = await createWorkspace(app, adminUser);
+    const [workspace3] = await createWorkspace(app, adminUser);
+
+    await addUserToWorkspace(
+      app,
+      adminUser,
+      workspace1.id.toString(),
+      teammateUser.user.id.toString(),
+    );
+    await addUserToWorkspace(
+      app,
+      adminUser,
+      workspace3.id.toString(),
+      teammateUser.user.id.toString(),
+    );
+
+    const [workspaces] = await listWorkspaces(app, teammateUser);
+
+    expect(workspaces.length).toBe(2);
+    expect(workspaces.find((w) => w.id === workspace1.id)?.id).toBeDefined();
+    expect(workspaces.find((w) => w.id === workspace2.id)?.id).toBeUndefined();
+    expect(workspaces.find((w) => w.id === workspace3.id)?.id).toBeDefined();
+
+    await workspaceService.delete(workspace1.id, false);
+    await workspaceService.delete(workspace2.id, false);
+    await workspaceService.delete(workspace3.id, false);
   });
 
   it('Should return workspace if user is member', async () => {

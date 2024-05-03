@@ -35,6 +35,19 @@ export async function getWorkspace(
   return [response.body.workspace as Workspace, response];
 }
 
+export async function listWorkspaces(
+  app: INestApplication,
+  user: ITestUser,
+): Promise<[Workspace[], request.Response]> {
+  const response = await request(app.getHttpServer())
+    .get('/workspaces')
+    .set('Content-Type', 'application/json')
+    .set('Authorization', `Bearer ${user.token.accessToken}`)
+    .send();
+
+  return [response.body.workspaces as Workspace[], response];
+}
+
 export async function addUserToWorkspace(
   app: INestApplication,
   user: ITestUser,
