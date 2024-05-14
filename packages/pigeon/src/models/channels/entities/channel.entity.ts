@@ -20,7 +20,7 @@ export class Channel extends BaseEntity {
   @Column()
   isDM: boolean;
 
-  @ManyToOne(() => Workspace)
+  @ManyToOne(() => Workspace, (workspace) => workspace.channels)
   workspace: Workspace;
 
   @ManyToMany(() => User)
