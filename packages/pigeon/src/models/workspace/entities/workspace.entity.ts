@@ -6,8 +6,10 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { User } from 'src/models/user/entities/user.entity';
+import { Channel } from '../../channels/entities/channel.entity';
 
 @Entity('workspaces')
 export class Workspace extends BaseEntity {
@@ -21,7 +23,7 @@ export class Workspace extends BaseEntity {
   @JoinColumn()
   owner: User;
 
-  @ManyToMany(() => User, { cascade: true })
+  @ManyToMany(() => User)
   @JoinTable({
     name: 'workspace_users',
     joinColumn: {
@@ -32,4 +34,9 @@ export class Workspace extends BaseEntity {
     },
   })
   users: User[];
+
+  @OneToMany(() => Channel, (channel) => channel.workspace, {
+    cascade: true,
+  })
+  channels: Channel[];
 }
