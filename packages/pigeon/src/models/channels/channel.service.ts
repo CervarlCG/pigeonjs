@@ -17,6 +17,9 @@ import { UserService } from '../user/user.service';
 import { UserRoles } from 'pigeon-types';
 import { PaginationService } from '../pagination/pagination.service';
 import { User } from '../user/entities/user.entity';
+import { RemoveOptions } from 'src/common/interfaces/repository';
+import { defaultRemoveOptions } from 'src/common/constants/repository';
+import { merge } from 'lodash';
 
 @Injectable()
 export class ChannelService {
@@ -142,6 +145,19 @@ export class ChannelService {
 
   async delete(id: EntityID) {
     return this.channelRepository.softDelete({ id });
+  }
+
+  /**
+   * Remove an entity
+   * @param id The Entity ID.
+   * @param options The Remove options
+   */
+  async remove(id: EntityID | Channel, options_: RemoveOptions = {}) {
+    const options = merge(defaultRemoveOptions, options_);
+    const channel = await this.getChannel(id);
+    if (!channel) return;
+    if (options.soft) await this.channelRepository.softRemove([channel]);
+    else await this.channelRepository.remove([channel]);
   }
 
   async canModerateChannel(

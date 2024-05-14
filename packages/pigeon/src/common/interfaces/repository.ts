@@ -8,5 +8,4 @@ export interface DeleteOptions {
 
 export interface RemoveOptions {
   soft?: boolean;
-  children?: boolean;
 }
