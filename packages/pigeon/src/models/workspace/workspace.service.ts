@@ -107,6 +107,7 @@ export class WorkspaceService {
           relations: {
             owner: true,
             users: true,
+            channels: true,
           },
           select: {
             users: this.userService.getRelationColums(),

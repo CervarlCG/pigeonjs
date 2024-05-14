@@ -9,13 +9,13 @@ export function generateRandomEmail() {
   return `${username}@${domain}${tld}`;
 }
 
-export function generateRandomValue(length = 20) {
+export function generateRandomValue(length = 20, prefix = '') {
   const chars = 'abcdefghijklmnopqrstuvwxyz1234567890';
   let value = '';
   for (let i = 0; i < length; i++) {
     value += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return value;
+  return prefix + value;
 }
 
 export async function createUser(server: any) {
