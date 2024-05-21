@@ -22,6 +22,7 @@ import { UpdateChannelDto } from './dto/update-channel.dto';
 import { WorkspaceMemberGuard } from '../workspace/workspace.guard';
 import { UpdateUserAtChannelDto } from './dto/add-user-to-channel.dto';
 import { parseID } from 'src/common/utils/id';
+import { ResourceNotFoundException } from 'src/common/exceptions/system';
 
 export interface ChannelRequest extends UserRequest {
   channel: Channel;
@@ -34,11 +35,25 @@ export class ChannelController {
 
   @Get('/')
   @UseGuards(WorkspaceMemberGuard)
-  list(@Request() req: UserRequest) {
+  async list(@Request() req: UserRequest) {
     return this.channelService.listByUser(
       req.user.id,
       req.query.after?.toString(),
     );
+  }
+
+  @Get('/:channelId')
+  @UseGuards(ChannelMemberGuard)
+  async retrieve(@Request() req: UserRequest) {
+    const channel = await this.channelService.findById(
+      parseID(req.params.channelId),
+    );
+
+    if (!channel) throw new ResourceNotFoundException('Channel not found');
+
+    return {
+      channel: this.channelService.toDto(channel),
+    };
   }
 
   @Post()
@@ -59,12 +74,6 @@ export class ChannelController {
         await this.channelService.update(body, req.channel),
       ),
     };
-  }
-
-  @Delete('/:channelId')
-  @UseGuards(ChannelModerationGuard)
-  async delete(@Request() req: ChannelRequest) {
-    await this.channelService.delete(req.channel.id);
   }
 
   @Post('/:channelId/user')
