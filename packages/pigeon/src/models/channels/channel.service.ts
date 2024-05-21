@@ -92,9 +92,14 @@ export class ChannelService {
 
     if (channel.users.find((u) => u.id === userId)) return channel;
 
-    channel.users = [...channel.users, user];
+    await this.channelRepository
+      .createQueryBuilder('channel')
+      .insert()
+      .into(CHANNEL_TO_USERS_TABLE)
+      .values([{ channelId: channel.id, userId: user.id }])
+      .execute();
 
-    return this.channelRepository.save(channel);
+    return (await this.findById(channel.id)) as Channel;
   }
 
   /**
