@@ -6,17 +6,16 @@ import { UserService } from 'src/models/user/user.service';
 import { ITestUser, signUpAccounts } from '../helper/user';
 import { UserRoles } from 'pigeon-types';
 import { AuthService } from 'src/models/auth/auth.service';
-import * as request from 'supertest';
 import { generateRandomValue } from '../utils/auth';
+import { addUserToWorkspace, createWorkspace } from '../helper/workspace';
 import {
-  addUserToWorkspace,
-  createWorkspace,
-  getWorkspace,
-  listWorkspaces,
-} from '../helper/workspace';
-import { createChannel } from 'test/helper/channel';
-import { Privacy } from '../../src/common/constants/private';
+  addUserToChannel,
+  createChannel,
+  listChannels,
+  updateChannel,
+} from 'test/helper/channel';
 import { ChannelService } from 'src/models/channels/channel.service';
+import { Privacy } from 'src/common/constants/private';
 
 describe('WorkspaceController (Create)', () => {
   let app: INestApplication;
@@ -77,10 +76,7 @@ describe('WorkspaceController (Create)', () => {
 
     const [channel1, channel1Response] = await createChannel(app, admin, {
       name: channel1Name,
-      handle: channel1Name,
-      privacy: Privacy.PRIVATE,
       workspaceId: workspace1.id.toString(),
-      isDM: false,
     });
 
     expect(channel1Response.statusCode).toBe(201);
@@ -89,10 +85,7 @@ describe('WorkspaceController (Create)', () => {
 
     const [channel2, channel2Response] = await createChannel(app, mod, {
       name: channel2Name,
-      handle: channel2Name,
-      privacy: Privacy.PRIVATE,
       workspaceId: workspace1.id.toString(),
-      isDM: false,
     });
 
     expect(channel2Response.statusCode).toBe(201);
@@ -101,10 +94,7 @@ describe('WorkspaceController (Create)', () => {
 
     const [_, channel3Response] = await createChannel(app, user, {
       name: channel3Name,
-      handle: channel3Name,
-      privacy: Privacy.PRIVATE,
       workspaceId: workspace1.id.toString(),
-      isDM: false,
     });
 
     expect(channel3Response.statusCode).toBe(403);
@@ -112,6 +102,117 @@ describe('WorkspaceController (Create)', () => {
     await Promise.all([
       await channelService.remove(channel1.id, { soft: false }),
       await channelService.remove(channel2.id, { soft: false }),
+    ]);
+
+    await workspaceService.delete(workspace1.id, false);
+  });
+
+  it('Should list channels where users is member', async () => {
+    const admin = users[1];
+    const user1 = users[2];
+    const user2 = users[4];
+
+    const [workspace1] = await createWorkspace(app, admin);
+    await addUserToWorkspace(
+      app,
+      admin,
+      workspace1.id.toString(),
+      user1.user.id.toString(),
+    );
+    await addUserToWorkspace(
+      app,
+      admin,
+      workspace1.id.toString(),
+      user2.user.id.toString(),
+    );
+
+    const [[channel1], [channel2], [channel3]] = await Promise.all([
+      createChannel(app, admin, {
+        workspaceId: workspace1.id.toString(),
+      }),
+      createChannel(app, admin, {
+        workspaceId: workspace1.id.toString(),
+      }),
+      createChannel(app, admin, {
+        workspaceId: workspace1.id.toString(),
+      }),
+    ]);
+
+    await Promise.all([
+      addUserToChannel(app, admin, channel1.id.toString(), user1),
+      addUserToChannel(app, admin, channel2.id.toString(), user1),
+      addUserToChannel(app, admin, channel3.id.toString(), user1),
+      addUserToChannel(app, admin, channel1.id.toString(), user2),
+      addUserToChannel(app, admin, channel3.id.toString(), user2),
+    ]);
+
+    const [channelListForUser1] = await listChannels(
+      app,
+      user1,
+      workspace1.id.toString(),
+    );
+
+    const [channelListForUser2] = await listChannels(
+      app,
+      user2,
+      workspace1.id.toString(),
+    );
+
+    expect(channelListForUser1.channels.length).toBe(3);
+    expect(channelListForUser2.channels.length).toBe(2);
+    expect(
+      channelListForUser2.channels.find(
+        (chaneel) => chaneel.id === channel2.id,
+      ),
+    ).toBeUndefined();
+
+    await Promise.all([
+      await channelService.remove(channel1.id, { soft: false }),
+      await channelService.remove(channel2.id, { soft: false }),
+      await channelService.remove(channel3.id, { soft: false }),
+    ]);
+
+    await workspaceService.delete(workspace1.id, false);
+  });
+
+  it('Should allow update channel', async () => {
+    const admin = users[1];
+    const user = users[2];
+    const channelName = generateRandomValue(20, 'e2e-channel-');
+    const [workspace1] = await createWorkspace(app, admin);
+
+    const [channel1] = await createChannel(app, admin, {
+      workspaceId: workspace1.id.toString(),
+    });
+
+    await addUserToWorkspace(
+      app,
+      admin,
+      workspace1.id.toString(),
+      user.user.id.toString(),
+    );
+
+    expect(channel1.privacy).toBe(Privacy.PRIVATE);
+
+    const [channel1V2] = await updateChannel(app, admin, {
+      channelId: channel1.id.toString(),
+      name: channelName,
+      privacy: Privacy.PUBLIC,
+    });
+
+    expect(channel1V2.name).toBe(channelName);
+    expect(channel1V2.privacy).toBe(Privacy.PUBLIC);
+
+    const [_, channel1V3Response] = await updateChannel(app, user, {
+      channelId: channel1.id.toString(),
+      name: channelName,
+      privacy: Privacy.PRIVATE,
+    });
+
+    expect(channel1V3Response.statusCode).toBe(403);
+
+    await Promise.all([
+      await channelService.remove(channel1.id, { soft: false }),
     ]);
 
     await workspaceService.delete(workspace1.id, false);
