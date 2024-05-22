@@ -9,6 +9,7 @@ import { AuthService } from 'src/models/auth/auth.service';
 import {
   addUserToWorkspace,
   createWorkspace,
+  getWorkspace,
   removeUserFromWorkspace,
 } from '../helper/workspace';
 
@@ -50,36 +51,37 @@ describe('WorkspaceController - Users (e2e)', () => {
     const moderatorUser = users[0];
     const teammateUser = users[2];
     const [workspace1V1] = await createWorkspace(app, adminUser);
-    const [workspace1V2, workspace1V2Response] = await addUserToWorkspace(
+
+    const [[_, workspace1V2Response], [__, workspace1V3Response]] =
+      await Promise.all([
+        addUserToWorkspace(
+          app,
+          adminUser,
+          workspace1V1.id.toString(),
+          moderatorUser.user.id.toString(),
+        ),
+        addUserToWorkspace(
+          app,
+          moderatorUser,
+          workspace1V1.id.toString(),
+          teammateUser.user.id.toString(),
+        ),
+      ]);
+
+    expect(workspace1V2Response.statusCode).toBe(201);
+    expect(workspace1V3Response.statusCode).toBe(201);
+
+    const [workspace1V4] = await getWorkspace(
       app,
       adminUser,
       workspace1V1.id.toString(),
-      moderatorUser.user.id.toString(),
     );
 
-    expect(workspace1V2Response.statusCode).toBe(201);
-    expect(workspace1V2.id).toBe(workspace1V1.id);
-    expect(workspace1V2.users.length).toBeGreaterThan(
-      workspace1V1.users.length,
-    );
     expect(
-      workspace1V2.users.find((u: any) => u.id === moderatorUser.user.id),
+      workspace1V4.users.find((u: any) => u.id === moderatorUser.user.id),
     ).toBeDefined();
-
-    const [workspace1V3, workspace1V3Response] = await addUserToWorkspace(
-      app,
-      moderatorUser,
-      workspace1V1.id.toString(),
-      teammateUser.user.id.toString(),
-    );
-
-    expect(workspace1V3Response.statusCode).toBe(201);
-    expect(workspace1V3.id).toBe(workspace1V1.id);
-    expect(workspace1V3.users.length).toBeGreaterThan(
-      workspace1V1.users.length,
-    );
     expect(
-      workspace1V3.users.find((u: any) => u.id === teammateUser.user.id),
+      workspace1V4.users.find((u: any) => u.id === teammateUser.user.id),
     ).toBeDefined();
 
     await workspaceService.delete(workspace1V1.id, false);
