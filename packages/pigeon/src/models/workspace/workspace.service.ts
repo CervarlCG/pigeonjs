@@ -9,7 +9,10 @@ import {
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Repository } from 'typeorm';
-import { Workspace } from './entities/workspace.entity';
+import {
+  Workspace,
+  WORKSPACE_TO_USERS_TABLE,
+} from './entities/workspace.entity';
 import { FindOptions } from 'src/common/interfaces/repository';
 import { merge } from 'lodash';
 import { workspaceUsersLimit } from 'src/config/app';
@@ -182,8 +185,14 @@ export class WorkspaceService {
     if (workspace.users.find((user) => user.id === userId))
       throw new ResourceConflictException('User already is on the workspace.');
 
-    workspace.users = [...workspace.users, user];
-    return this.workspaceRepository.save(workspace);
+    await this.workspaceRepository
+      .createQueryBuilder('workspace')
+      .insert()
+      .into(WORKSPACE_TO_USERS_TABLE)
+      .values([{ workspaceId: workspace.id, userId: user.id }])
+      .execute();
+
+    return (await this.findById(workspace.id)) as Workspace;
   }
 
   /**
@@ -225,8 +234,17 @@ export class WorkspaceService {
         "Owner can't be removed. Please transfer the ownership before.",
       );
 
-    workspace.users = workspace.users.filter((user_) => user_.id !== user.id);
-    return this.workspaceRepository.save(workspace);
+    await this.workspaceRepository
+      .createQueryBuilder('workspace')
+      .delete()
+      .from(WORKSPACE_TO_USERS_TABLE)
+      .where('workspaceId = :workspaceId and userId = :userId', {
+        workspaceId: workspace.id,
+        userId: user.id,
+      })
+      .execute();
+
+    return (await this.findById(workspace.id)) as Workspace;
   }
 
   /**

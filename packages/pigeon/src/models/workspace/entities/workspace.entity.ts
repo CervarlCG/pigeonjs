@@ -11,6 +11,8 @@ import {
 import { User } from 'src/models/user/entities/user.entity';
 import { Channel } from '../../channels/entities/channel.entity';
 
+export const WORKSPACE_TO_USERS_TABLE = 'workspace_users';
+
 @Entity('workspaces')
 export class Workspace extends BaseEntity {
   @Column()
@@ -25,7 +27,7 @@ export class Workspace extends BaseEntity {
 
   @ManyToMany(() => User)
   @JoinTable({
-    name: 'workspace_users',
+    name: WORKSPACE_TO_USERS_TABLE,
     joinColumn: {
       name: 'workspaceId',
     },
