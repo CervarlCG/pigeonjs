@@ -17,7 +17,7 @@ import { UserService } from '../user/user.service';
 import { UserRoles } from 'pigeon-types';
 import { PaginationService } from '../pagination/pagination.service';
 import { User } from '../user/entities/user.entity';
-import { RemoveOptions } from 'src/common/interfaces/repository';
+import { DeleteOptions, RemoveOptions } from 'src/common/interfaces/repository';
 import { defaultRemoveOptions } from 'src/common/constants/repository';
 import { merge } from 'lodash';
 
@@ -148,8 +148,10 @@ export class ChannelService {
     return this.channelRepository.save(channel);
   }
 
-  async delete(id: EntityID) {
-    return this.channelRepository.softDelete({ id });
+  async delete(id: EntityID, options: DeleteOptions = {}) {
+    if (options.hardDelete === true)
+      await this.channelRepository.delete({ id });
+    else await this.channelRepository.softDelete({ id });
   }
 
   /**
