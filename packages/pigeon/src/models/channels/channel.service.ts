@@ -148,12 +148,6 @@ export class ChannelService {
     return this.channelRepository.save(channel);
   }
 
-  async delete(id: EntityID, options: DeleteOptions = {}) {
-    if (options.hardDelete === true)
-      await this.channelRepository.delete({ id });
-    else await this.channelRepository.softDelete({ id });
-  }
-
   /**
    * Remove an entity
    * @param id The Entity ID.

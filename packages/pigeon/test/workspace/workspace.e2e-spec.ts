@@ -1,26 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { AppModule } from 'src/app.module';
-import { WorkspaceService } from 'src/models/workspace/workspace.service';
-import { UserService } from 'src/models/user/user.service';
-import { ITestUser, signUpAccounts } from '../helper/user';
 import { UserRoles } from 'pigeon-types';
-import { AuthService } from 'src/models/auth/auth.service';
-import * as request from 'supertest';
-import { generateRandomValue } from '../utils/auth';
-import {
-  addUserToWorkspace,
-  createWorkspace,
-  getWorkspace,
-  listWorkspaces,
-} from '../helper/workspace';
+import { AgentEntity } from 'test/lib/agent';
+import { AgentException } from 'test/lib/agent/exception';
 
 describe('WorkspaceController (Create)', () => {
   let app: INestApplication;
-  let userService: UserService;
-  let workspaceService: WorkspaceService;
-  let authService: AuthService;
-  let users: ITestUser[] = [];
+  let users: AgentEntity[] = [];
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -28,11 +15,8 @@ describe('WorkspaceController (Create)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    userService = app.get(UserService);
-    workspaceService = app.get(WorkspaceService);
-    authService = app.get(AuthService);
     await app.init();
-    users = await signUpAccounts(userService, authService, [
+    users = await AgentEntity.createBatch(app, [
       UserRoles.MODERATOR,
       UserRoles.ADMIN,
       UserRoles.TEAM_MATE,
@@ -42,111 +26,72 @@ describe('WorkspaceController (Create)', () => {
   });
 
   afterAll(async () => {
-    for (const user of users) {
-      await userService.delete(user.user.id, { hardDelete: true });
-    }
+    await AgentEntity.destroy(app, { agents: users });
     await app.close();
   });
 
   it('Should check permissions to allow only admins create workspaces', async () => {
-    let user = users[0];
-    const workspace1 = generateRandomValue();
-    const responseUser1 = await request(app.getHttpServer())
-      .post('/workspaces')
-      .set('Content-Type', 'application/json')
-      .set('Authorization', `Bearer ${user.token.accessToken}`)
-      .send({
-        name: workspace1,
-        handle: workspace1,
-      });
+    const admin = users[1];
+    const moderator = users[0];
+    const teammate = users[2];
 
-    expect(responseUser1.statusCode).toBe(401);
+    const workspace1: AgentException = await teammate.workspace
+      .create()
+      .catch((err) => err);
+    const workspace2: AgentException = await moderator.workspace
+      .create()
+      .catch((err) => err);
+    const [workspace3, workspace3Response] = await admin.workspace.create();
 
-    user = users[2];
-    const responseUser2 = await request(app.getHttpServer())
-      .post('/workspaces')
-      .set('Content-Type', 'application/json')
-      .set('Authorization', `Bearer ${user.token.accessToken}`)
-      .send({
-        name: workspace1,
-        handle: workspace1,
-      });
+    expect(workspace1).toBeInstanceOf(AgentException);
+    expect(workspace1.statusCode).toBe(401);
+    expect(workspace2).toBeInstanceOf(AgentException);
+    expect(workspace2.statusCode).toBe(401);
+    expect(workspace3Response.statusCode).toBe(201);
 
-    expect(responseUser2.statusCode).toBe(401);
-
-    user = users[1];
-    const responseUser3 = await request(app.getHttpServer())
-      .post('/workspaces')
-      .set('Content-Type', 'application/json')
-      .set('Authorization', `Bearer ${user.token.accessToken}`)
-      .send({
-        name: workspace1,
-        handle: workspace1,
-      });
-
-    expect(responseUser3.statusCode).toBe(201);
-
-    await workspaceService.delete(responseUser3.body.workspace.id, false);
+    await AgentEntity.destroy(app, { workspaces: [workspace3] });
   });
 
   it('Should return all workspace where user is member', async () => {
-    const adminUser = users[1];
-    const teammateUser = users[2];
-    const [workspace1] = await createWorkspace(app, adminUser);
-    const [workspace2] = await createWorkspace(app, adminUser);
-    const [workspace3] = await createWorkspace(app, adminUser);
+    const admin = users[1];
+    const teammate = users[2];
 
-    await addUserToWorkspace(
-      app,
-      adminUser,
-      workspace1.id.toString(),
-      teammateUser.user.id.toString(),
-    );
-    await addUserToWorkspace(
-      app,
-      adminUser,
-      workspace3.id.toString(),
-      teammateUser.user.id.toString(),
-    );
-
-    const [workspaces] = await listWorkspaces(app, teammateUser);
+    const [workspace1] = await admin.workspace.create();
+    const [workspace2] = await admin.workspace.create();
+    const [workspace3] = await admin.workspace.create();
+    await Promise.all([
+      admin.workspace.addUser(workspace1.id, teammate.user.me.id),
+      admin.workspace.addUser(workspace3.id, teammate.user.me.id),
+    ]);
+    const [workspaces] = await teammate.workspace.list();
 
     expect(workspaces.length).toBe(2);
     expect(workspaces.find((w) => w.id === workspace1.id)?.id).toBeDefined();
     expect(workspaces.find((w) => w.id === workspace2.id)?.id).toBeUndefined();
     expect(workspaces.find((w) => w.id === workspace3.id)?.id).toBeDefined();
 
-    await workspaceService.delete(workspace1.id, false);
-    await workspaceService.delete(workspace2.id, false);
-    await workspaceService.delete(workspace3.id, false);
+    await AgentEntity.destroy(app, {
+      workspaces: [workspace1, workspace2, workspace3],
+    });
   });
 
   it('Should return workspace if user is member', async () => {
-    const adminUser = users[1];
-    const moderatorUser = users[0];
-    const teammateUser = users[2];
-    const [workspace1V1] = await createWorkspace(app, adminUser);
+    const admin = users[1];
+    const moderator = users[0];
+    const teammate = users[2];
 
-    await addUserToWorkspace(
-      app,
-      adminUser,
-      workspace1V1.id.toString(),
-      moderatorUser.user.id.toString(),
-    );
-    await addUserToWorkspace(
-      app,
-      adminUser,
-      workspace1V1.id.toString(),
-      teammateUser.user.id.toString(),
+    const [workspace1] = await admin.workspace.create();
+    await Promise.all([
+      admin.workspace.addUser(workspace1.id, moderator.user.me.id),
+      admin.workspace.addUser(workspace1.id, teammate.user.me.id),
+    ]);
+    const [workspace1V2, workspace1V2Response] = await admin.workspace.get(
+      workspace1.id,
     );
 
-    const [workspace1V2, workspace1V2Response] = await getWorkspace(
-      app,
-      adminUser,
-      workspace1V1.id.toString(),
-    );
     expect(workspace1V2Response.statusCode).toBe(200);
     expect(workspace1V2.id).toBeDefined();
-    await workspaceService.delete(workspace1V1.id, false);
+
+    await AgentEntity.destroy(app, { workspaces: [workspace1V2] });
   });
 });

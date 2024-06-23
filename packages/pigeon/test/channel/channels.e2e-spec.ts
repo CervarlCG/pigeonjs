@@ -16,6 +16,7 @@ import {
 } from 'test/helper/channel';
 import { ChannelService } from 'src/models/channels/channel.service';
 import { Privacy } from 'src/common/constants/private';
+import { AgentEntity } from 'test/lib/agent';
 
 describe('WorkspaceController (Create)', () => {
   let app: INestApplication;
@@ -23,7 +24,7 @@ describe('WorkspaceController (Create)', () => {
   let workspaceService: WorkspaceService;
   let channelService: ChannelService;
   let authService: AuthService;
-  let users: ITestUser[] = [];
+  let users: AgentEntity[] = [];
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -36,7 +37,7 @@ describe('WorkspaceController (Create)', () => {
     authService = app.get(AuthService);
     channelService = app.get(ChannelService);
     await app.init();
-    users = await signUpAccounts(userService, authService, [
+    users = await AgentEntity.createBatch(app, [
       UserRoles.MODERATOR,
       UserRoles.ADMIN,
       UserRoles.TEAM_MATE,
@@ -46,16 +47,21 @@ describe('WorkspaceController (Create)', () => {
   });
 
   afterAll(async () => {
-    for (const user of users) {
-      await userService.delete(user.user.id, { hardDelete: true });
-    }
+    await AgentEntity.destroy(app, { agents: users });
     await app.close();
   });
 
   it('Should check permissions to allow only admins and mods create channels', async () => {
     const admin = users[1];
-    const mod = users[0];
-    const user = users[2];
+    const moderator = users[0];
+    const teammate = users[2];
+
+    const [workspace1] = await admin.workspace.create();
+    await Promise.all([
+      admin.workspace.addUser(workspace1.id, moderator.user.me.id),
+      admin.workspace.addUser(workspace1.id, teammate.user.me.id),
+    ]);
+
     const channel1Name = generateRandomValue(20, 'e2e-channel-');
     const channel2Name = generateRandomValue(20, 'e2e-channel-');
     const channel3Name = generateRandomValue(20, 'e2e-channel-');

@@ -1,5 +1,4 @@
 import { UserService } from 'src/models/user/user.service';
-import { generateRandomEmail, generateRandomValue } from '../utils/auth';
 import { UserRoles } from 'pigeon-types';
 import { AuthService } from 'src/models/auth/auth.service';
 import { User } from 'src/models/user/entities/user.entity';
@@ -43,9 +42,25 @@ export async function signUpAccounts(
   return users;
 }
 
-function getRandomName() {
+export function getRandomName() {
   return {
     firstName: firstNames[Math.floor(Math.random() * firstNames.length)],
     lastName: lastNames[Math.floor(Math.random() * firstNames.length)],
   };
+}
+
+export function generateRandomEmail() {
+  const username = generateRandomValue();
+  const domain = 'testing';
+  const tld = '.com';
+  return `${username}@${domain}${tld}`;
+}
+
+export function generateRandomValue(length = 20, prefix = '') {
+  const chars = 'abcdefghijklmnopqrstuvwxyz1234567890';
+  let value = '';
+  for (let i = 0; i < length; i++) {
+    value += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return prefix + value;
 }
