@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import { AppModule } from './../src/app.module';
 import { jwtPattern } from './utils/auth';
 import { UserAgent } from './lib/agent/users';
-import { generateRandomValue } from './helper/user';
+import { generateRandomValue } from './utils/string';
 import { AgentException } from './lib/agent/exception';
 
 describe('AppController (e2e)', () => {

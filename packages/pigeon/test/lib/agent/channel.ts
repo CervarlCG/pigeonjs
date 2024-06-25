@@ -1,4 +1,4 @@
-import { generateRandomValue } from 'test/helper/user';
+import { generateRandomValue } from 'test/utils/string';
 import { UserAgent } from './users';
 import * as request from 'supertest';
 import { EntityID } from 'src/common/types/id';
@@ -66,10 +66,12 @@ export class ChannelAgent {
     return [response.body.channel as Channel, response];
   }
 
-  async update(channelDto: UpdateChannelDto & { channelId: EntityID }) {
+  async update(
+    channelDto: UpdateChannelDto & { channelId: EntityID },
+  ): Promise<[Channel, request.Response]> {
     const { channelId, ...body } = channelDto;
     const response = await this.user.autenticatedRequest({
-      method: 'post',
+      method: 'patch',
       url: `/channels/${channelId}`,
       body,
     });

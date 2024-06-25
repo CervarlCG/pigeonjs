@@ -41,7 +41,7 @@ export class AgentEntity {
     }: {
       agents?: AgentEntity[];
       workspaces?: Workspace[];
-      channels: Channel[];
+      channels?: Channel[];
     },
   ) {
     await Promise.all(

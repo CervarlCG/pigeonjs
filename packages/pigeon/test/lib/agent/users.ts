@@ -2,7 +2,7 @@ import {
   getRandomName,
   generateRandomEmail,
   generateRandomValue,
-} from '../../helper/user';
+} from 'test/utils/string';
 import { UserRoles } from 'pigeon-types';
 import { UserService } from 'src/models/user/user.service';
 import { INestApplication } from '@nestjs/common';

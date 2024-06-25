@@ -1,4 +1,4 @@
-import { generateRandomValue } from 'test/helper/user';
+import { generateRandomValue } from 'test/utils/string';
 import { UserAgent } from './users';
 import * as request from 'supertest';
 import { Workspace } from '../../../src/models/workspace/entities/workspace.entity';
