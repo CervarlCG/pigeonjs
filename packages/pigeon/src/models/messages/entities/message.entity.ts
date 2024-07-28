@@ -8,11 +8,9 @@ export class Message extends BaseEntity {
   @Column()
   content: string;
 
-  @Column()
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.messages)
   user: User;
 
-  @Column()
-  @ManyToOne(() => Channel)
+  @ManyToOne(() => Channel, (channel) => channel.messages)
   channel: Channel;
 }

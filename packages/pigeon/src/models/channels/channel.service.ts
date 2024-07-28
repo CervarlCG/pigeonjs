@@ -184,6 +184,20 @@ export class ChannelService {
     return parseInt(result[0].count) === 1;
   }
 
+  /**
+   * Retrieve most necessary user columns to avoid select unnecessary columns
+   */
+  getRelationColums() {
+    return {
+      id: true,
+      name: true,
+      handle: true,
+      privacy: true,
+      isDM: true,
+      createdAt: true,
+    };
+  }
+
   toDto(channel: Channel) {
     return {
       id: channel.id,

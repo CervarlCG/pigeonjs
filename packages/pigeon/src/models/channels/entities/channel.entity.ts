@@ -1,8 +1,16 @@
 import { BaseEntity } from 'src/common/database/base-entity';
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { Privacy } from 'src/common/constants/private';
 import { Workspace } from 'src/models/workspace/entities/workspace.entity';
 import { User } from 'src/models/user/entities/user.entity';
+import { Message } from 'src/models/messages/entities/message.entity';
 
 export const CHANNEL_TO_USERS_TABLE = 'channel_users';
 
@@ -34,4 +42,7 @@ export class Channel extends BaseEntity {
     },
   })
   users: User[];
+
+  @OneToMany(() => Message, (message) => message.channel)
+  messages: Message[];
 }
