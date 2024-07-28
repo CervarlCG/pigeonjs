@@ -10,10 +10,10 @@
     "test:e2e": "lerna run test:e2e"
   },
   "dependencies": {
-    "uuid": "^9.0.1"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "@types/uuid": "^9.0.8",
-    "lerna": "^8.1.2"
+    "@types/uuid": "^10.0.0",
+    "lerna": "^8.1.7"
   }
 }
