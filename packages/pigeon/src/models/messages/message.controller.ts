@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Param,
   Patch,
   Post,
@@ -42,5 +43,11 @@ export class MessagesController {
         ),
       ),
     };
+  }
+
+  @Delete('/:messageId')
+  @UseGuards(MessageOwnerGuard)
+  async remove(@Param() params: any) {
+    await this.messagesService.remove(parseID(params.messageId));
   }
 }

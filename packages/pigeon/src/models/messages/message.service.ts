@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Message } from './entities/message.entity';
-import { Repository } from 'typeorm';
+import { RemoveOptions, Repository } from 'typeorm';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { EntityID } from 'src/common/types/id';
 import { UserService } from '../user/user.service';
 import { ChannelService } from '../channels/channel.service';
 import { parseID } from 'src/common/utils/id';
 import { ResourceNotFoundException } from 'src/common/exceptions/system';
+import { merge } from 'lodash';
+import { defaultRemoveOptions } from 'src/common/constants/repository';
 
 @Injectable()
 export class MessagesService {
@@ -19,6 +21,11 @@ export class MessagesService {
   ) {}
 
   async search() {}
+
+  private async getMessage(channel: EntityID | Message) {
+    if (channel instanceof Message) return channel;
+    return this.findById(channel);
+  }
 
   async findById(id: EntityID) {
     return this.messageRepository.findOne({
@@ -67,7 +74,13 @@ export class MessagesService {
     return messageUpdated;
   }
 
-  async remove() {}
+  async remove(id: EntityID | Message, options_?: RemoveOptions) {
+    const options = merge(defaultRemoveOptions, options_);
+    const message = await this.getMessage(id);
+    if (!message) return;
+    if (options.soft) await this.messageRepository.softRemove([message]);
+    else await this.messageRepository.remove([message]);
+  }
 
   toDto(message: Message) {
     return {
