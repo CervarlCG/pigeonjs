@@ -205,9 +205,9 @@ export class ChannelService {
       handle: channel.handle,
       privacy: channel.privacy,
       isDM: channel.isDM,
-      workspaceId: channel.workspace.id,
       createdAt: channel.createdAt,
-      users: channel.users.map((user) => this.userService.toDto(user)),
+      workspaceId: channel.workspace?.id,
+      users: channel.users?.map((user) => this.userService.toDto(user)),
     };
   }
 }

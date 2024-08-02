@@ -73,7 +73,7 @@ export class MessagesService {
     return {
       id: message.id,
       content: message.content,
-      channel: message.channel,
+      channel: this.channelService.toDto(message.channel),
       user: this.userService.toDto(message.user),
       createdAt: message.createdAt,
     };
