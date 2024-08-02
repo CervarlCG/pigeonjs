@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EntityID } from 'src/common/types/id';
-import { Entity, JoinTable, LessThanOrEqual, Repository } from 'typeorm';
+import { Entity, FindOneOptions, JoinTable, LessThanOrEqual, Repository } from 'typeorm';
 import { Channel, CHANNEL_TO_USERS_TABLE } from './entities/channel.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateChannelDto } from './dto/create-channel.dto';
@@ -31,26 +31,26 @@ export class ChannelService {
     private paginationService: PaginationService,
   ) {}
 
-  async findById(id: EntityID) {
-    return this.channelRepository.findOne({
+  async findById(id: EntityID, options?: FindOneOptions<Channel>) {
+    return this.channelRepository.findOne(merge({
       where: { id },
       relations: { users: true, workspace: true },
       select: {
         users: this.userService.getRelationColums(),
         workspace: { id: true },
       },
-    });
+    }, options));
   }
 
-  async findByHandle(handle: string) {
-    return this.channelRepository.findOne({
+  async findByHandle(handle: string, options?: FindOneOptions<Channel>) {
+    return this.channelRepository.findOne(merge({
       where: { handle },
       relations: { users: true, workspace: true },
       select: {
         users: this.userService.getRelationColums(),
         workspace: { id: true },
       },
-    });
+    }, options));
   }
 
   async listByUser(userId: EntityID, after?: string) {

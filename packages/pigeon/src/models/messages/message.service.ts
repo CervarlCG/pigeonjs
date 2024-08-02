@@ -8,7 +8,6 @@ import { UserService } from '../user/user.service';
 import { ChannelService } from '../channels/channel.service';
 import { parseID } from 'src/common/utils/id';
 import { ResourceNotFoundException } from 'src/common/exceptions/system';
-import { UpdateMessageDto } from './dto/update-message.dto';
 
 @Injectable()
 export class MessagesService {
@@ -36,6 +35,7 @@ export class MessagesService {
     const user = await this.userService.findById(userId);
     const channel = await this.channelService.findById(
       parseID(messageData.channelId),
+      {relations: { users: false }}
     );
 
     if (!user) throw new ResourceNotFoundException("User doesn't exist");
@@ -64,19 +64,17 @@ export class MessagesService {
     )
       throw new ResourceNotFoundException('Message not found');
 
-    console.log(messageUpdated);
     return messageUpdated;
   }
 
   async remove() {}
 
   toDto(message: Message) {
-    console.log({ message });
     return {
       id: message.id,
       content: message.content,
       channel: message.channel,
-      user: message.user,
+      user: this.userService.toDto(message.user),
       createdAt: message.createdAt,
     };
   }
