@@ -14,6 +14,7 @@ import { CreateMessageDto } from './dto/create-message.dto';
 import { UserRequest } from 'src/common/interfaces/http';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { parseID } from 'src/common/utils/id';
+import { MessageOwnerGuard } from './message.guard';
 
 @Controller('/messages')
 @UseGuards(JwtAuthGuard)
@@ -31,8 +32,8 @@ export class MessagesController {
   }
 
   @Patch('/:messageId')
+  @UseGuards(MessageOwnerGuard)
   async update(@Param() params: any, @Body() body: UpdateMessageDto) {
-    console.log({ params, body });
     return {
       message: this.messagesService.toDto(
         await this.messagesService.update(
