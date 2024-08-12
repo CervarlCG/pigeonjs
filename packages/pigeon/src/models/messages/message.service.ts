@@ -22,6 +22,13 @@ export class MessagesService {
     private readonly paginationService: PaginationService,
   ) {}
 
+  /**
+   * Search for messages on a channel
+   * @param channelId The channel where the system will search
+   * @param searchTerm The search parameter
+   * @param after start cursor of the page
+   * @returns An object containing messages and the next cursor if it is not the last
+   */
   async search(channelId: EntityID, searchTerm?: string, after?: string) {
     const { data, next } = await this.paginationService.findWithCursor<Message>(
       (options) => {
@@ -59,11 +66,21 @@ export class MessagesService {
     };
   }
 
+  /**
+   * Get an instance of a channel
+   * @param channel The channel ID or entity
+   * @returns An instance of the channel if it exists.
+   */
   private async getMessage(channel: EntityID | Message) {
     if (channel instanceof Message) return channel;
     return this.findById(channel);
   }
 
+  /**
+   * Find a instance of a channel
+   * @param id The channel ID
+   * @returns An instance of the channel if it exists.
+   */
   async findById(id: EntityID) {
     return this.messageRepository.findOne({
       where: { id },
@@ -75,6 +92,12 @@ export class MessagesService {
     });
   }
 
+  /**
+   * Creates a message
+   * @param messageData The message data
+   * @param userId The owner
+   * @returns An instance of the message created
+   */
   async create(messageData: CreateMessageDto, userId: EntityID) {
     const user = await this.userService.findById(userId);
     const channel = await this.channelService.findById(
@@ -94,6 +117,12 @@ export class MessagesService {
     return this.messageRepository.save(message);
   }
 
+  /**
+   * Updated a message content
+   * @param id The message ID
+   * @param message The message content
+   * @returns A instance of the message updated
+   */
   async update(id: EntityID, message: string): Promise<Message> {
     const updated = await this.messageRepository.update(
       { id },
@@ -111,6 +140,11 @@ export class MessagesService {
     return messageUpdated;
   }
 
+  /**
+   * Removes a message
+   * @param id The message ID
+   * @param options_ The remove options
+   */
   async remove(id: EntityID | Message, options_?: RemoveOptions) {
     const options = merge(defaultRemoveOptions, options_);
     const message = await this.getMessage(id);
@@ -119,6 +153,11 @@ export class MessagesService {
     else await this.messageRepository.remove([message]);
   }
 
+  /**
+   * Converts a message entity into a data transfer object.
+   * @param workspace The message entity to convert.
+   * @returns The message data transfer object.
+   */
   toDto(message: Message) {
     return {
       id: message.id,
