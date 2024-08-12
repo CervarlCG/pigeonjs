@@ -67,7 +67,10 @@ export class ChannelMemberGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<UserRequest>();
-    const channelId = request.params.channelId || request.body.channelId;
+    const channelId =
+      request.params.channelId ||
+      request.body.channelId ||
+      request.query.channelId;
     return this.channelService.hasUser(channelId, request.user.id);
   }
 }
