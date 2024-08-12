@@ -10,6 +10,7 @@ import { parseID } from 'src/common/utils/id';
 import { ResourceNotFoundException } from 'src/common/exceptions/system';
 import { merge } from 'lodash';
 import { defaultRemoveOptions } from 'src/common/constants/repository';
+import { PaginationService } from '../pagination/pagination.service';
 
 @Injectable()
 export class MessagesService {
@@ -18,9 +19,45 @@ export class MessagesService {
     private readonly messageRepository: Repository<Message>,
     private readonly userService: UserService,
     private readonly channelService: ChannelService,
+    private readonly paginationService: PaginationService,
   ) {}
 
-  async search() {}
+  async search(channelId: EntityID, searchTerm?: string, after?: string) {
+    const { data, next } = await this.paginationService.findWithCursor<Message>(
+      (options) => {
+        const query = this.messageRepository
+          .createQueryBuilder('messages')
+          .leftJoinAndSelect('messages.user', 'user')
+          .leftJoinAndSelect('messages.channel', 'channel')
+          .select()
+          .where('channelId = :channelId', { channelId });
+
+        if (searchTerm)
+          query.andWhere(
+            'MATCH (messages.content) AGAINST(:searchTerm IN BOOLEAN MODE)',
+            {
+              searchTerm,
+            },
+          );
+
+        if (options.cursor)
+          query.andWhere('messages.id <= :messageId', {
+            messageId: options.cursor,
+          });
+
+        return query
+          .take(options.limit)
+          .orderBy('messages.id', 'DESC')
+          .getMany();
+      },
+      { after },
+    );
+
+    return {
+      messages: data,
+      next,
+    };
+  }
 
   private async getMessage(channel: EntityID | Message) {
     if (channel instanceof Message) return channel;
@@ -42,7 +79,7 @@ export class MessagesService {
     const user = await this.userService.findById(userId);
     const channel = await this.channelService.findById(
       parseID(messageData.channelId),
-      {relations: { users: false }}
+      { relations: { users: false } },
     );
 
     if (!user) throw new ResourceNotFoundException("User doesn't exist");
