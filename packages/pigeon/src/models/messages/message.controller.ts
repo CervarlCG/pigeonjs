@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Patch,
   Post,
@@ -21,6 +22,21 @@ import { MessageOwnerGuard } from './message.guard';
 @UseGuards(JwtAuthGuard)
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
+
+  @Get('/')
+  @UseGuards(ChannelMemberGuard)
+  async list(@Request() req: UserRequest) {
+    const { messages, next } = await this.messagesService.search(
+      parseID(req.query.channelId!.toString()),
+      req.query.query?.toString().trim(),
+      req.query.after?.toString().trim(),
+    );
+
+    return {
+      messages: messages.map((message) => this.messagesService.toDto(message)),
+      next,
+    };
+  }
 
   @Post('/')
   @UseGuards(ChannelMemberGuard)
