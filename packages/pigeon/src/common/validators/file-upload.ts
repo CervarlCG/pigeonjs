@@ -1,6 +1,6 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import { FileType } from '../types/file';
-import { maxAttachmentSize } from 'src/config/files';
+import { maxAttachmentSize, mimetypesPattern } from 'src/config/files';
 import { ParametersException, SystemException } from '../exceptions/system';
 
 @Injectable()
@@ -16,6 +16,9 @@ export class FilesUploadValidationPipe implements PipeTransform {
         throw new ParametersException(
           `File size must be lower that ${maxAttachmentSize} bytes.`,
         );
+
+      if (!mimetypesPattern.test(file.mimetype))
+        throw new ParametersException(`File mimetype is not valid.`);
     });
 
     return value;
