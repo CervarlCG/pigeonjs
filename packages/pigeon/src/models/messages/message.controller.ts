@@ -6,11 +6,14 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
+  Res,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { MessagesService } from './message.service';
 import { ChannelMemberGuard } from '../channels/channel.guard';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -23,11 +26,15 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { maxMessagesAttachments } from 'src/config/files';
 import { FileType } from 'src/common/types/file';
 import { FilesUploadValidationPipe } from 'src/common/validators/file-upload';
+import { MessageAttachmentService } from './message-attachments.service';
 
 @Controller('/messages')
 @UseGuards(JwtAuthGuard)
 export class MessagesController {
-  constructor(private readonly messagesService: MessagesService) {}
+  constructor(
+    private readonly messagesService: MessagesService,
+    private readonly messageAttachmentService: MessageAttachmentService,
+  ) {}
 
   @Get('/')
   @UseGuards(ChannelMemberGuard)
@@ -42,6 +49,22 @@ export class MessagesController {
       messages: messages.map((message) => this.messagesService.toDto(message)),
       next,
     };
+  }
+
+  @Get('/attachment/:id')
+  async downloadAttachment(
+    @Res() res: Response,
+    @Param() params: { id: string },
+    @Query() query: { preview?: boolean },
+  ) {
+    const { buffer, mimetype } =
+      await this.messageAttachmentService.getAttachmentBuffer(
+        parseID(params.id),
+        query.preview,
+      );
+    res.setHeader('Content-Type', mimetype);
+    res.setHeader('Content-Disposition', 'inline');
+    res.send(buffer);
   }
 
   @Post('/')
