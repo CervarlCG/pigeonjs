@@ -12,6 +12,7 @@ import { WorkspaceService } from '../workspace/workspace.service';
 import { Workspace } from '../workspace/entities/workspace.entity';
 import { MessageAttachment } from './entities/attachment';
 import { MulterModule } from '@nestjs/platform-express';
+import { MessageAttachmentService } from './message-attachments.service';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { MulterModule } from '@nestjs/platform-express';
     PaginationService,
     UserService,
     MessagesService,
+    MessageAttachmentService,
     WorkspaceService,
   ],
   controllers: [MessagesController],

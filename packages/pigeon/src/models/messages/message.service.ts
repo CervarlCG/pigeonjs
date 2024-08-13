@@ -13,6 +13,7 @@ import { defaultRemoveOptions } from 'src/common/constants/repository';
 import { PaginationService } from '../pagination/pagination.service';
 import { FileType } from 'src/common/types/file';
 import { MessageAttachment } from './entities/attachment';
+import { MessageAttachmentService } from './message-attachments.service';
 
 @Injectable()
 export class MessagesService {
@@ -21,6 +22,7 @@ export class MessagesService {
     private readonly messageRepository: Repository<Message>,
     @InjectRepository(MessageAttachment)
     private readonly messageAttachmentRepository: Repository<MessageAttachment>,
+    private readonly messageAttachmentService: MessageAttachmentService,
     private readonly userService: UserService,
     private readonly channelService: ChannelService,
     private readonly paginationService: PaginationService,
@@ -119,28 +121,20 @@ export class MessagesService {
     if (!user) throw new ResourceNotFoundException("User doesn't exist");
     if (!channel) throw new ResourceNotFoundException("Channel doesn't exist");
 
-    let attachments: MessageAttachment[] = [];
-
     const message = this.messageRepository.create({
       user,
       channel,
-      attachments,
       content: messageData.message,
     });
-    const messageEntity = await this.messageRepository.save(message);
 
-    const attachmentsPromises =
-      messageData.attachments?.map((attch) => {
-        const attachment = this.messageAttachmentRepository.create({
-          ...this.fileToEntity(attch),
-          message: messageEntity,
-        });
-        return this.messageAttachmentRepository.save(attachment);
-      }) || [];
+    const messageEntity = await this.messageRepository.save(message);
 
     return {
       ...messageEntity,
-      attachments: await Promise.all(attachmentsPromises),
+      attachments: await this.messageAttachmentService.uploadAttachments(
+        messageData.attachments || [],
+        message,
+      ),
     };
   }
 
@@ -178,14 +172,6 @@ export class MessagesService {
     if (!message) return;
     if (options.soft) await this.messageRepository.softRemove([message]);
     else await this.messageRepository.remove([message]);
-  }
-
-  fileToEntity(file: FileType) {
-    return {
-      url: `/${file.path}`,
-      previewURL: '',
-      mimetype: file.mimetype,
-    };
   }
 
   /**
