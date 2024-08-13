@@ -10,9 +10,20 @@ import { MessagesController } from './message.controller';
 import { MessagesService } from './message.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { Workspace } from '../workspace/entities/workspace.entity';
+import { MessageAttachment } from './entities/attachment';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Message, Channel, User, Workspace])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Message,
+      MessageAttachment,
+      Channel,
+      User,
+      Workspace,
+    ]),
+    MulterModule.register({ dest: './uploads/messages/files' }),
+  ],
   providers: [
     ChannelService,
     PaginationService,

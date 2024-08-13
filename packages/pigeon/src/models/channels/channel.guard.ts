@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { AppRequest, UserRequest } from 'src/common/interfaces/http';
 import { UserRoles } from 'pigeon-types';
 import { WorkspaceService } from '../workspace/workspace.service';

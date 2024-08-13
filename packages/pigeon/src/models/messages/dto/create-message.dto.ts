@@ -9,8 +9,4 @@ export class CreateMessageDto {
   @MaxLength(10_000)
   @Transform(TrimTransformer)
   message: string;
-
-  @IsNotEmpty()
-  @Matches(IDPattern, { message: 'Channel ID was not provided' })
-  channelId: string;
 }

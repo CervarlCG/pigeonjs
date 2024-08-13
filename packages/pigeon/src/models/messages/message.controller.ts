@@ -7,7 +7,10 @@ import {
   Patch,
   Post,
   Request,
+  UploadedFile,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { MessagesService } from './message.service';
 import { ChannelMemberGuard } from '../channels/channel.guard';
@@ -17,6 +20,12 @@ import { UserRequest } from 'src/common/interfaces/http';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { parseID } from 'src/common/utils/id';
 import { MessageOwnerGuard } from './message.guard';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
+import { maxMessagesAttachments } from 'src/config/files';
+import { FileType } from 'src/common/types/file';
 
 @Controller('/messages')
 @UseGuards(JwtAuthGuard)
@@ -40,10 +49,26 @@ export class MessagesController {
 
   @Post('/')
   @UseGuards(ChannelMemberGuard)
-  async create(@Request() req: UserRequest, @Body() body: CreateMessageDto) {
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'attachments', maxCount: maxMessagesAttachments },
+    ]),
+  )
+  async create(
+    @Request() req: UserRequest,
+    @Body() body: CreateMessageDto,
+    @UploadedFiles() files: { attachments?: FileType[] },
+  ) {
     return {
       message: this.messagesService.toDto(
-        await this.messagesService.create(body, req.user.id),
+        await this.messagesService.create(
+          {
+            message: body.message,
+            channelId: req.query.channelId!.toString(),
+            attachments: files.attachments,
+          },
+          req.user.id,
+        ),
       ),
     };
   }

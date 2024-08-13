@@ -11,12 +11,16 @@ import { ResourceNotFoundException } from 'src/common/exceptions/system';
 import { merge } from 'lodash';
 import { defaultRemoveOptions } from 'src/common/constants/repository';
 import { PaginationService } from '../pagination/pagination.service';
+import { FileType } from 'src/common/types/file';
+import { MessageAttachment } from './entities/attachment';
 
 @Injectable()
 export class MessagesService {
   constructor(
     @InjectRepository(Message)
     private readonly messageRepository: Repository<Message>,
+    @InjectRepository(MessageAttachment)
+    private readonly messageAttachmentRepository: Repository<MessageAttachment>,
     private readonly userService: UserService,
     private readonly channelService: ChannelService,
     private readonly paginationService: PaginationService,
@@ -36,6 +40,7 @@ export class MessagesService {
           .createQueryBuilder('messages')
           .leftJoinAndSelect('messages.user', 'user')
           .leftJoinAndSelect('messages.channel', 'channel')
+          .leftJoinAndSelect('messages.attachments', 'attachments')
           .select()
           .where('channelId = :channelId', { channelId });
 
@@ -84,7 +89,7 @@ export class MessagesService {
   async findById(id: EntityID) {
     return this.messageRepository.findOne({
       where: { id },
-      relations: { user: true, channel: true },
+      relations: { user: true, channel: true, attachments: true },
       select: {
         user: this.userService.getRelationColums(),
         channel: this.channelService.getRelationColums(),
@@ -98,7 +103,13 @@ export class MessagesService {
    * @param userId The owner
    * @returns An instance of the message created
    */
-  async create(messageData: CreateMessageDto, userId: EntityID) {
+  async create(
+    messageData: CreateMessageDto & {
+      channelId: string;
+      attachments?: FileType[];
+    },
+    userId: EntityID,
+  ) {
     const user = await this.userService.findById(userId);
     const channel = await this.channelService.findById(
       parseID(messageData.channelId),
@@ -108,13 +119,29 @@ export class MessagesService {
     if (!user) throw new ResourceNotFoundException("User doesn't exist");
     if (!channel) throw new ResourceNotFoundException("Channel doesn't exist");
 
+    let attachments: MessageAttachment[] = [];
+
     const message = this.messageRepository.create({
       user,
       channel,
+      attachments,
       content: messageData.message,
     });
+    const messageEntity = await this.messageRepository.save(message);
 
-    return this.messageRepository.save(message);
+    const attachmentsPromises =
+      messageData.attachments?.map((attch) => {
+        const attachment = this.messageAttachmentRepository.create({
+          ...this.fileToEntity(attch),
+          message: messageEntity,
+        });
+        return this.messageAttachmentRepository.save(attachment);
+      }) || [];
+
+    return {
+      ...messageEntity,
+      attachments: await Promise.all(attachmentsPromises),
+    };
   }
 
   /**
@@ -153,6 +180,14 @@ export class MessagesService {
     else await this.messageRepository.remove([message]);
   }
 
+  fileToEntity(file: FileType) {
+    return {
+      url: `/${file.path}`,
+      previewURL: '',
+      mimetype: file.mimetype,
+    };
+  }
+
   /**
    * Converts a message entity into a data transfer object.
    * @param workspace The message entity to convert.
@@ -165,6 +200,14 @@ export class MessagesService {
       channel: this.channelService.toDto(message.channel),
       user: this.userService.toDto(message.user),
       createdAt: message.createdAt,
+      attachments:
+        message.attachments.map((attch) => ({
+          id: attch.id,
+          createdAt: attch.createdAt,
+          url: attch.url,
+          previewURL: attch.previewURL,
+          mimetype: attch.mimetype,
+        })) || [],
     };
   }
 }
