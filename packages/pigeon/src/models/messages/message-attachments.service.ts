@@ -8,6 +8,8 @@ import * as sharp from 'sharp';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { imageMimeTypeRegex } from 'src/config/files';
+import { EntityID } from 'src/common/types/id';
+import { ResourceNotFoundException } from 'src/common/exceptions/system';
 
 @Injectable()
 export class MessageAttachmentService {
@@ -15,6 +17,18 @@ export class MessageAttachmentService {
     @InjectRepository(MessageAttachment)
     private readonly messageAttachmentRepository: Repository<MessageAttachment>,
   ) {}
+
+  /**
+   * Find a instance of a attachment
+   * @param id The attachment ID
+   * @returns An instance of the attachment if it exists.
+   */
+  async findById(id: EntityID) {
+    return this.messageAttachmentRepository.findOne({
+      where: { id },
+      relations: { message: false },
+    });
+  }
 
   /**
    * Upload the attachment of a message
@@ -74,5 +88,24 @@ export class MessageAttachmentService {
 
     await fs.writeFile(newPath, imageResized, {});
     return newPath;
+  }
+
+  /**
+   * Gets the buffer of a attachment
+   * @param id The attachment ID
+   * @param preview If the buffer should be the preview
+   * @returns A Buffer object
+   */
+  async getAttachmentBuffer(id: EntityID, preview?: boolean) {
+    const attachment = await this.findById(id);
+    if (!attachment)
+      throw new ResourceNotFoundException('Attachment not found.');
+
+    return {
+      mimetype: attachment.mimetype,
+      buffer: await fs.readFile(
+        !preview ? attachment.url : attachment.previewURL,
+      ),
+    };
   }
 }
