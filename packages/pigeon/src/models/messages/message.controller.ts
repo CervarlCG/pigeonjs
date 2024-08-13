@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
   Request,
-  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -20,12 +19,10 @@ import { UserRequest } from 'src/common/interfaces/http';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { parseID } from 'src/common/utils/id';
 import { MessageOwnerGuard } from './message.guard';
-import {
-  FileFieldsInterceptor,
-  FileInterceptor,
-} from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { maxMessagesAttachments } from 'src/config/files';
 import { FileType } from 'src/common/types/file';
+import { FilesUploadValidationPipe } from 'src/common/validators/file-upload';
 
 @Controller('/messages')
 @UseGuards(JwtAuthGuard)
@@ -51,13 +48,17 @@ export class MessagesController {
   @UseGuards(ChannelMemberGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
-      { name: 'attachments', maxCount: maxMessagesAttachments },
+      {
+        name: 'attachments',
+        maxCount: maxMessagesAttachments,
+      },
     ]),
   )
   async create(
     @Request() req: UserRequest,
     @Body() body: CreateMessageDto,
-    @UploadedFiles() files: { attachments?: FileType[] },
+    @UploadedFiles(FilesUploadValidationPipe)
+    files: { attachments?: FileType[] },
   ) {
     return {
       message: this.messagesService.toDto(
