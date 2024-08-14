@@ -1,15 +1,16 @@
+import * as sharp from 'sharp';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import { Injectable } from '@nestjs/common';
 import { FileType } from 'src/common/types/file';
 import { Message } from './entities/message.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MessageAttachment } from './entities/attachment';
 import { Repository } from 'typeorm';
-import * as sharp from 'sharp';
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import { imageMimeTypeRegex } from 'src/config/files';
 import { EntityID } from 'src/common/types/id';
 import { ResourceNotFoundException } from 'src/common/exceptions/system';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class MessageAttachmentService {
@@ -107,5 +108,18 @@ export class MessageAttachmentService {
         !preview ? attachment.url : attachment.previewURL,
       ),
     };
+  }
+
+  async hasUserPermissionToView(id: EntityID, user: User) {
+    const count = await this.messageAttachmentRepository
+      .createQueryBuilder('attachment')
+      .innerJoinAndSelect('attachment.message', 'message')
+      .innerJoinAndSelect('message.channel', 'channel')
+      .innerJoinAndSelect('channel.users', 'user')
+      .where('attachment.id = :attachmentId', { attachmentId: id })
+      .andWhere('user.id = :userId', { userId: user.id })
+      .getCount();
+
+    return count > 0;
   }
 }

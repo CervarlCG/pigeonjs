@@ -27,6 +27,7 @@ import { maxMessagesAttachments } from 'src/config/files';
 import { FileType } from 'src/common/types/file';
 import { FilesUploadValidationPipe } from 'src/common/validators/file-upload';
 import { MessageAttachmentService } from './message-attachments.service';
+import { AttachmentViewPermission } from './message-attachment.guard';
 
 @Controller('/messages')
 @UseGuards(JwtAuthGuard)
@@ -52,6 +53,7 @@ export class MessagesController {
   }
 
   @Get('/attachment/:id')
+  @UseGuards(AttachmentViewPermission)
   async downloadAttachment(
     @Res() res: Response,
     @Param() params: { id: string },
