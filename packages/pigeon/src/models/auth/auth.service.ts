@@ -54,9 +54,7 @@ export class AuthService {
 
       if (!response?.email) throw new UnauthorizedException();
 
-      const { token } = await this.signIn(user);
-
-      return token;
+      return await this.signIn(user);
     } catch (err) {
       throw new UnauthorizedException('Tokens provided are invalid.');
     }
