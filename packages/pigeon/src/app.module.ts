@@ -17,6 +17,7 @@ import { WorkspaceModule } from './models/workspace/workspace.module';
 import { PaginationModule } from './models/pagination/pagination.module';
 import { ChannelModule } from './models/channels/channel.module';
 import { MessageModule } from './models/messages/message.module';
+import { EventsModule } from './models/events/events.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { MessageModule } from './models/messages/message.module';
     WorkspaceModule,
     ChannelModule,
     MessageModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [

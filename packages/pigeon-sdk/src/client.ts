@@ -19,6 +19,14 @@ export default class PigeonClient {
     this.baseUrl = baseUrl;
   }
 
+  get accessToken() {
+    return this.tokens.accessToken;
+  }
+
+  get refreshToken() {
+    return this.tokens.refreshToken;
+  }
+
   get me() {
     return this.user;
   }
@@ -47,7 +55,7 @@ export default class PigeonClient {
       this.tokens.accessToken &&
       this.tokens.refreshToken
     ) {
-      await this.refreshToken();
+      await this.refreshCurrentToken();
     }
 
     if (!response.ok && retry < this.retries && this.tokens.accessToken) {
@@ -77,7 +85,7 @@ export default class PigeonClient {
   /**
    * Refresh the current expired token
    */
-  async refreshToken() {
+  async refreshCurrentToken() {
     const { user, token } = await this.request("/auth/refresh-token", {
       body: JSON.stringify({ refreshToken: this.tokens.refreshToken }),
     });
