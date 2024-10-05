@@ -1,6 +1,29 @@
+* {
+  box-sizing: border-box;
+  font-family: "Roboto", sans-serif;
+  font-style: normal;
+}
+
+:root {
+  --color-background: #fafafa;
+  --color-surface: #ffffff;
+  --secondary-color: #a9a9a9;
+}
+
 body {
   margin: 0px;
   padding: 0px;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+.avatar-bg {
+  color: var(--ant-color-primary-bg);
+}
+.ant-typography {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 /*********** Fonts **************/
 .roboto-thin {
@@ -76,7 +99,7 @@ body {
 }
 
 /*********** Form ***************/
-.ant-btn {
+.ant-btn:not(.ant-btn-sm) {
   height: 40px;
 }
 
@@ -94,6 +117,9 @@ body {
 
 .width-full {
   width: 100%;
+}
+.height-full {
+  height: 100%;
 }
 .shadow-normal,
 .shadow-normal:not(.antd-card-bordered) {

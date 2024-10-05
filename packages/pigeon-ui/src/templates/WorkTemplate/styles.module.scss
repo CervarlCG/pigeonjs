@@ -1,0 +1,27 @@
+.page {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+
+  .card {
+    padding: 10px;
+    border-radius: 0px;
+    background-color: var(--color-background);
+    .dropdown {
+      > button:first-child {
+        flex-grow: 1;
+        justify-content: flex-start;
+      }
+    }
+
+    &.w-small {
+      width: 300px;
+    }
+    &.w-grow {
+      flex-grow: 1;
+    }
+    &.border {
+      border-right: 1px solid var(--ant-color-border-secondary);
+    }
+  }
+}

@@ -1,0 +1,35 @@
+.item {
+  padding: 5px;
+  padding-right: 10px;
+  transition: background-color 300ms;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--ant-color-primary);
+    color: var(--ant-color-primary-bg);
+
+    .last-message,
+    span {
+      color: var(--ant-color-primary-bg);
+    }
+  }
+  .badge {
+    width: 36px;
+  }
+
+  .last-message {
+    font-size: 14px;
+    color: var(--secondary-color);
+  }
+  .badge-indicator {
+    box-shadow: none;
+  }
+}
+
+.list {
+  .avatar {
+    background-color: var(--color-surface);
+    color: unset;
+    box-shadow: 0px 0px 5px #26214a0d;
+  }
+}

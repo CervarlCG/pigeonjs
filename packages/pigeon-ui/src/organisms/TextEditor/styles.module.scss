@@ -1,0 +1,39 @@
+.editor {
+  width: 100%;
+
+  .editor-body {
+    padding: var(--ant-padding-md);
+    padding-bottom: var(--ant-padding-xs);
+  }
+  .editable-section {
+    position: relative;
+    .text-editable {
+      outline: none;
+      z-index: 2;
+      max-height: 88px;
+      overflow-y: auto;
+    }
+    .placeholder {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      z-index: 1;
+      user-select: none;
+      pointer-events: none;
+      color: var(--secondary-color);
+    }
+  }
+  .styling {
+    button {
+      background-color: transparent;
+      border: none;
+      transition: background-color 300ms;
+      padding: 5px;
+      cursor: pointer;
+      border-radius: 3px;
+      &:hover {
+        background-color: rgba($color: #000000, $alpha: 0.1);
+      }
+    }
+  }
+}
